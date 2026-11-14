@@ -1,0 +1,7 @@
+[
+  {
+    "astronautId": "AC-01",
+    "heartRateBpm": 62, "systolicMmHg": 118, "diastolicMmHg": 76,
+    "temperatureC": 36.7, "sleepHours": 7.0, "fatigueScore": 2
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "normal", "label": "Normal (fictional)",
+    "record": {
+      "recordId": "scn-normal", "astronautId": "AC-01", "missionDay": 42, "recordedAt": "",
+      "source": "simulated", "environment": "station",
+      "measurements": { "heartRateBpm": 64, "systolicMmHg": 120, "diastolicMmHg": 78, "temperatureC": 36.8, "sleepHours": 7.2, "fatigueScore": 2, "mood": "good" },
+      "symptoms": [], "symptomsAnswer": "none", "context": {}
+    }
+  },
+  {
+    "id": "concerning", "label": "Concerning (fictional)",
+    "record": {
+      "recordId": "scn-concerning", "astronautId": "AC-01", "missionDay": 43, "recordedAt": "",
+      "source": "simulated", "environment": "station",
+      "measurements": { "heartRateBpm": 72, "systolicMmHg": 122, "diastolicMmHg": 80, "temperatureC": 36.9, "sleepHours": 5.0, "fatigueScore": 6, "mood": "ok" },
+      "symptoms": [{ "type": "dizziness", "severity": "mild", "onset": "this morning" }], "symptomsAnswer": "reported", "context": {}
+    }
+  },
+  {
+    "id": "high-risk", "label": "High-risk (fictional)",
+    "record": {
+      "recordId": "scn-high", "astronautId": "AC-01", "missionDay": 44, "recordedAt": "",
+      "source": "simulated", "environment": "station",
+      "measurements": { "heartRateBpm": 70, "systolicMmHg": 124, "diastolicMmHg": 80, "temperatureC": 36.8, "sleepHours": 6.5, "fatigueScore": 4, "mood": "ok" },
+      "symptoms": [{ "type": "chest_pain", "severity": "moderate", "onset": "1 hour ago" }], "symptomsAnswer": "reported", "context": {}
+    }
+  }
+]

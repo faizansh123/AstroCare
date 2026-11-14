@@ -1,0 +1,22 @@
+{
+  "engineVersion": "demo-rules-0.1.0",
+  "label": "ILLUSTRATIVE demo thresholds. Not clinically validated. Pending clinical review (file 13 §6).",
+  "requiredFields": ["heartRateBpm", "systolicMmHg", "diastolicMmHg", "temperatureC", "sleepHours", "fatigueScore"],
+  "plausibility": {
+    "heartRateBpm": [25, 250],
+    "systolicMmHg": [60, 260],
+    "diastolicMmHg": [30, 160],
+    "temperatureC": [30, 44],
+    "sleepHours": [0, 24],
+    "fatigueScore": [0, 10]
+  },
+  "redFlagSymptoms": ["chest_pain", "shortness_of_breath", "fainting"],
+  "yellow": {
+    "heartRateBpm": { "up": 15 },
+    "systolicMmHg": { "abs": 20 },
+    "temperatureC": { "up": 1.0 },
+    "sleepHours": { "down": 1.5 },
+    "fatigueScore": { "up": 3 }
+  },
+  "redConcurrentDeviations": 3
+}

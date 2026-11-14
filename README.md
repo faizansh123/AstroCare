@@ -29,6 +29,16 @@ Health Data -> Personal Baseline -> Trend Recognition -> Assessment -> Action ->
 | `13-technical-build-plan.md` | Technical build plan derived from 10, 11 and 12: contracts, rules engine, Gemini proxy and guard, screens, tests, Day 1/Day 2 schedule |
 | `09-gaps-and-innovation.md` | Gap analysis, data strategy, NASA benefit, differentiation, and the iterated innovation thesis |
 
+## Running the baseline app
+
+```
+npm install
+npm run dev     # http://localhost:5173
+npm test        # T01-T04, T06, T07 on the rules engine
+```
+
+Current state: single-page start form, then the local rules engine, then the results view. The Gemini proxy (`api/explain.ts`) is a stub that returns `{ ai: null }` until `GEMINI_API_KEY` is set server-side (see `.env.example`), so the app runs rules-only (file 12 §6).
+
 ## Quick facts
 
 - Type: hackathon prototype, interactive browser app, simulated data only
