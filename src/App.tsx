@@ -1,26 +1,31 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import baselines from "./data/baselines.json";
 import { AssessmentForm } from "./components/AssessmentForm";
 import { Results } from "./components/Results";
 import { evaluate } from "./lib/evaluate";
-import { fetchExplanation } from "./lib/apiClient";
-import type { AiExplanation, AssessmentResult, Baseline, HealthRecord } from "./types/health";
+import { fetchExplanation, type AiOutcome } from "./lib/apiClient";
+import type { AssessmentResult, Baseline, HealthRecord } from "./types/health";
 
 export default function App() {
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [record, setRecord] = useState<HealthRecord | null>(null);
-  const [ai, setAi] = useState<AiExplanation | null>(null);
+  const [ai, setAi] = useState<AiOutcome | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const latest = useRef<HealthRecord | null>(null);
 
   const run = async (rec: HealthRecord) => {
     const baseline = (baselines as Baseline[]).find((b) => b.astronautId === rec.astronautId);
     const r = evaluate(rec, baseline); // rules result renders first; AI only explains
+    latest.current = rec;
     setRecord(rec);
     setResult(r);
     setAi(null);
     setAiLoading(true);
     window.scrollTo({ top: 0 });
-    setAi(await fetchExplanation(rec, r));
+    const outcome = await fetchExplanation(rec, r);
+    // Ignore a late reply if the user has already started another check.
+    if (latest.current !== rec) return;
+    setAi(outcome);
     setAiLoading(false);
   };
 

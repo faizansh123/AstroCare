@@ -37,7 +37,23 @@ npm run dev     # http://localhost:5173
 npm test        # T01-T04, T06, T07 on the rules engine
 ```
 
-Current state: single-page start form, then the local rules engine, then the results view. The Gemini proxy (`api/explain.ts`) is a stub that returns `{ ai: null }` until `GEMINI_API_KEY` is set server-side (see `.env.example`), so the app runs rules-only (file 12 §6).
+Current state: single-page start form, then the local rules engine, then the results view, then the AI explanation panel.
+
+### Turning on the Gemini explanation
+
+1. Copy `.env.example` to `.env` (git-ignored) and set `GEMINI_API_KEY`. Optionally set `GEMINI_MODEL` (default `gemini-3.5-flash-lite`).
+2. `npm run dev`. The Vite dev middleware serves `POST /api/explain` using the same code as the Vercel function. On Vercel, set the same two env vars in the project settings.
+
+Without a key, the proxy returns `{ ai: null }` and the app runs rules-only (file 12 §6). The status always comes from the rules engine. Gemini only explains it, and its reply is schema-checked and filtered by `src/lib/aiGuard.ts` on the server and again on the client (file 13 §7).
+
+| Piece | File |
+|---|---|
+| System prompt (draft, pending clinical review) | `src/prompts/explain.v1.ts` |
+| Proxy core: validation, rate limit, 8 s timeout + 1 retry, guard | `server/explain.ts` |
+| Vercel entry point | `api/explain.ts` |
+| Safety guard (status echo, dose/drug/diagnosis filters) | `src/lib/aiGuard.ts` |
+| Client call + display | `src/lib/apiClient.ts`, `src/components/AiPanel.tsx` |
+| Tests (Gemini mocked) | `src/tests/ai.test.ts` |
 
 ## Quick facts
 

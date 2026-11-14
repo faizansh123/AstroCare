@@ -50,23 +50,42 @@ export interface Baseline {
   temperatureC: number; sleepHours: number; fatigueScore: number;
 }
 
-export interface Deviation {
-  field: string; baseline: number; current: number; delta: number; unit: string; flagged: boolean;
-}
+export const DeviationSchema = z.object({
+  field: z.string(), baseline: z.number(), current: z.number(), delta: z.number(), unit: z.string(), flagged: z.boolean(),
+});
+export type Deviation = z.infer<typeof DeviationSchema>;
 
-export interface AssessmentResult {
-  recordId: string;
-  status: Status;
-  deviations: Deviation[];
-  triggeredRules: { ruleId: string; level: "YELLOW" | "RED"; explanation: string }[];
-  guidanceIds: string[];
-  missingFields: string[];
-  evaluatedAt: string;
-  engineVersion: string;
-  disclaimer: string;
-}
+export const AssessmentResultSchema = z.object({
+  recordId: z.string(),
+  status: StatusSchema,
+  deviations: z.array(DeviationSchema),
+  triggeredRules: z.array(z.object({ ruleId: z.string(), level: z.enum(["YELLOW", "RED"]), explanation: z.string() })),
+  guidanceIds: z.array(z.string()),
+  missingFields: z.array(z.string()),
+  evaluatedAt: z.string(),
+  engineVersion: z.string(),
+  disclaimer: z.string(),
+});
+export type AssessmentResult = z.infer<typeof AssessmentResultSchema>;
 
-// What Gemini must return (file 13 §5). Used by the proxy once the key exists.
+// Body of POST /api/explain (file 13 §7). Free text is length-capped before it reaches the model.
+export const ExplainRequestSchema = z.object({
+  record: HealthRecordSchema.extend({
+    symptoms: z.array(z.object({
+      type: SymptomTypeSchema, severity: SeveritySchema,
+      onset: z.string().max(100), note: z.string().max(500).optional(),
+    })).max(20),
+    context: z.object({
+      activity: z.string().max(200).optional(),
+      posture: z.string().max(100).optional(),
+      notes: z.string().max(500).optional(),
+    }),
+  }),
+  result: AssessmentResultSchema,
+});
+export type ExplainRequest = z.infer<typeof ExplainRequestSchema>;
+
+// What Gemini must return (file 13 §5). Checked by the proxy and again by aiGuard on the client.
 export const AiExplanationSchema = z.object({
   explanation: z.string(),
   contributingFactors: z.array(z.string()),

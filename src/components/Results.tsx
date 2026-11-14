@@ -1,4 +1,6 @@
-import type { AiExplanation, AssessmentResult } from "../types/health";
+import type { AssessmentResult } from "../types/health";
+import type { AiOutcome } from "../lib/apiClient";
+import { AiPanel } from "./AiPanel";
 import { StatusBadge } from "./StatusBadge";
 import { Card, FIELD_LABELS } from "./ui";
 
@@ -8,7 +10,7 @@ const LEVEL_CLS = {
 } as const;
 
 export function Results({ result, ai, aiLoading, onBack }: {
-  result: AssessmentResult; ai: AiExplanation | null; aiLoading: boolean; onBack: () => void;
+  result: AssessmentResult; ai: AiOutcome | null; aiLoading: boolean; onBack: () => void;
 }) {
   return (
     <div className="space-y-5">
@@ -68,16 +70,7 @@ export function Results({ result, ai, aiLoading, onBack }: {
         )}
       </Card>
 
-      <Card title="AI-generated explanation"
-        aside={<span className="rounded-full border border-violet-400/40 px-3 py-1 text-xs text-violet-300">AI · does not set status</span>}>
-        {aiLoading ? (
-          <p className="text-slate-400">Loading explanation…</p>
-        ) : ai ? (
-          <p className="text-slate-200">{ai.explanation}</p>
-        ) : (
-          <p className="text-slate-400">AI explanation unavailable. The rules result above is complete on its own.</p>
-        )}
-      </Card>
+      <AiPanel ai={ai} loading={aiLoading} />
 
       <div className="flex flex-col gap-4 border-t border-slate-800 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-slate-500">

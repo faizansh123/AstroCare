@@ -24,7 +24,7 @@ Form (React+TS)
 | D1 | Who decides status | Local rules. Gemini explains only | file 12 §4, §8.1 |
 | D2 | Proxy host | Vercel serverless function `api/explain.ts` | file 12 §8.2, file 10 §10 |
 | D3 | Offline | Rules-only flow must work offline. The AI is optional. PWA caching is P1 | file 12 §8.3, file 11 §1.7 **[Default, confirm]** |
-| D4 | Gemini model | A fast Flash-tier model, read from an env var. Check the exact name and limits in the Google docs at build time | file 12 §5 **[Default, confirm]** |
+| D4 | Gemini model | A fast Flash-tier model, read from `GEMINI_MODEL`. Code default `gemini-3.5-flash-lite` (14 Nov 2026: `gemini-2.5-flash` is retired for new keys; `gemini-3.8-flash` and `gemini-3.7-flash` returned 503 high demand; 3.5-flash-lite answered in about 1.7 s and passed the guard on all three scenarios). Check the exact name and limits in the Google docs at build time | file 12 §5 **[Default, confirm]** |
 | D5 | Gemini output | Explanation, contributing factors, next steps, measurement tips, draft report summary | file 12 §4 **[Default, confirm]** |
 | D6 | Indicators (MVP) | HR, systolic and diastolic BP, temperature, sleep, fatigue, mood, symptoms, optional glucose. SpO2 and HRV are optional simulated fields (P1) | file 11 §1.3 **[Default, confirm]** |
 | D7 | Guaranteed innovation pillar | Delay-aware escalation and handoff | file 11 §3, §6.3 |
@@ -37,7 +37,9 @@ React 18 + Vite + TypeScript (strict), Tailwind CSS, Recharts (trends), Zod (run
 
 ```
 api/
-  explain.ts              Vercel function: holds GEMINI_API_KEY, rate limit, timeout + 1 retry, schema check
+  explain.ts              Vercel function entry: thin wrapper around server/explain.ts
+server/
+  explain.ts              Proxy core shared by Vercel and the Vite dev middleware: holds GEMINI_API_KEY, rate limit, timeout + 1 retry, schema check + aiGuard
 src/
   types/                  health.ts, assessment.ts, ai.ts, guidance.ts (zod schemas + inferred TS types)
   data/
@@ -121,6 +123,8 @@ P1 dual comparison (file 11 §3): add an "illustrative adaptation range for miss
 - Rate limit per IP with a simple in-memory counter (good enough for a demo).
 - Validate the reply with Zod before returning it. On failure, return `{ ai: null, reason }`.
 - `GEMINI_API_KEY` and `GEMINI_MODEL` live in Vercel env vars and a local `.env` that is git-ignored. Nothing is ever prefixed `VITE_`.
+- Local dev: `vite.config.ts` mounts the same `server/explain.ts` at `/api/explain`, so `npm run dev` works without the Vercel CLI.
+- The guard also runs in the proxy, so a blocked reply never leaves the server. Sensitive identifiers (`recordId`, `astronautId`) are stripped before the prompt is built.
 
 **System prompt `explain.v1`** (wording owned by Nabeeha): not a diagnosis. Never name medications or doses. Always include "follow approved mission procedures and contact the designated medical authority". The rules status is final: repeat it in `statusEcho` and never soften it. Say "insufficient data" rather than guess. Use respectful wording about mood. Don't infer radiation, cabin-air or bone-loss problems from vitals.
 
