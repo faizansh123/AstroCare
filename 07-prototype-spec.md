@@ -1,6 +1,6 @@
 # AstroCare Master Spec v2
 
-This is the **single build spec**. It merges the features doc (file 15), the clickable prototype and mockups (file 14), the SRS (file 10), and the architecture plan (file 12), using the decisions in file 11 (D1 to D23). If anything here conflicts with an older file, this file wins.
+This is the **single build spec**. It merges the features doc (file 15), the clickable prototype and mockups (file 14), the SRS (file 10), and the architecture plan (file 12), using the decisions in file 11 (D1 to D24). If anything here conflicts with an older file, this file wins.
 
 All data is simulated. Thresholds are illustrative demonstration rules, not validated flight medicine. The app is not diagnostic and not an operational flight-medical system.
 
@@ -115,7 +115,7 @@ Pipeline: form -> validate and normalize -> **rules engine** -> serverless proxy
 
 **Input to Gemini:** validated measurements, baseline deltas, symptoms, environment, lab results, data age, mission phase, the rules result (status and rules fired), and approved guidance snippets.
 
-**Output contract (F06):** status (copied from rules, never changed), observed evidence, baseline comparison, possible contextual factors, missing or uncertain information, recommended verification, escalation pathway.
+**Output contract (F06):** status (copied from rules, never changed), observed evidence, baseline comparison, possible contextual factors, missing or uncertain information, recommended verification, escalation pathway, and space hazards (D24: one note each for radiation exposure, cabin air, bone and muscle health; context only, never changes the status).
 
 **Safety:** never say CO2 caused a headache, never invent values or citations, never give unapproved treatment, never override the status. **Every sentence must reference an input field or an approved guidance source**, and the app checks this before showing it.
 

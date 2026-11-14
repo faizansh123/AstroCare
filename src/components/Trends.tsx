@@ -1,79 +1,81 @@
-// Trends (FR-09, file 13 §8, P1): one chart per indicator over mission days with the baseline and a shaded
-// illustrative threshold band. Gaps are not joined. Data is marked simulated. A data table gives the same values as text.
-import rules from "../data/rules.json";
-import { METRICS, SIM_LABEL, withGaps, type HistoryPoint } from "../lib/history";
-import type { Baseline } from "../types/health";
+// F09 Health trends (file 07 §4): time series with the Earth baseline line, mission-day axis, annotations from
+// mission log events, and filters. Historical points before saved check-ins are fictional.
+import { useState } from "react";
+import { VITALS, type VitalKey } from "../data/catalog";
+import { pctDelta, signed, signedPct } from "../lib/deltas";
+import { TREND_LABEL, loadTrend } from "../lib/store";
+import type { Ctx } from "../appTypes";
 import { TrendChart } from "./charts";
-import { fmt, Icon, METRIC_META, SimTag } from "./ui";
+import { Card, Icon, SimTag } from "./ui";
 
-export function Trends({ history, baseline }: { history: HistoryPoint[]; baseline: Baseline | undefined }) {
-  const data = withGaps(history);
+const METRICS: VitalKey[] = ["hr", "sbp", "dbp", "temp", "sleep", "mood"];
+
+export function Trends({ ctx }: { ctx: Ctx }) {
+  const [metric, setMetric] = useState<VitalKey>("hr");
+  const [showLog, setShowLog] = useState(true);
+  const m = VITALS[metric];
+  const data = loadTrend(ctx.snapshot);
+  const base = ctx.baseline.vitals[metric];
+  const pts = data.filter((p) => p[metric] !== undefined);
+  const latest = pts[pts.length - 1];
+  const first = pts[0];
+  const annotationDays = showLog ? [...new Set(ctx.log.map((e) => e.missionDay))].filter((d) => data.some((p) => p.missionDay === d)) : [];
+
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="eyebrow">Mission days {data[0]?.missionDay}–{data.at(-1)?.missionDay}</p>
-          <h1 className="mt-1 text-[28px] font-semibold tracking-tight text-fg">Trends</h1>
-          <p className="mt-1 max-w-2xl text-fg-2">{SIM_LABEL}</p>
+      <Card title={`Health trends · Mission days ${data[0]?.missionDay}–${data[data.length - 1]?.missionDay}`} icon="chart" aside={<SimTag />}>
+        <div className="mb-3 flex flex-wrap items-end gap-3">
+          <label className="mini">Metric
+            <select className="input mt-1 w-56" value={metric} onChange={(e) => setMetric(e.target.value as VitalKey)}>
+              {METRICS.map((k) => <option key={k} value={k}>{VITALS[k].label}</option>)}
+            </select>
+          </label>
+          <label className="flex min-h-[42px] items-center gap-2 text-sm text-fg-2">
+            <input type="checkbox" className="h-4 w-4 accent-[#46c9c2]" checked={showLog} onChange={(e) => setShowLog(e.target.checked)} />
+            Show mission log annotations
+          </label>
         </div>
-        <SimTag />
-      </div>
+        {pts.length === 0 ? <p className="mini py-10 text-center">No readings for this metric yet.</p> :
+          <TrendChart data={data} metric={metric} unit={m.unit} digits={m.digits} baseline={base} annotations={annotationDays} />}
+        <ul className="mt-2 flex flex-wrap gap-4 text-xs text-fg-3">
+          <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#5fd5e4]" />Simulated history (fictional)</li>
+          <li className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 bg-fg" />Saved check-in or current reading</li>
+          <li className="flex items-center gap-1.5"><span className="h-0 w-4 border-t-2 border-dashed border-earth" />Earth baseline</li>
+          <li className="flex items-center gap-1.5"><span className="h-3 w-0 border-l-2 border-dashed border-space" />Mission log event</li>
+        </ul>
+        <p className="mini mt-2">{TREND_LABEL} Gaps are missed readings and are not joined.</p>
+      </Card>
 
-      {/* Legend: line style and shape, never colour alone */}
-      <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-fg-2">
-        <span className="flex items-center gap-2"><svg width="22" height="8" aria-hidden><line x1="0" x2="22" y1="4" y2="4" stroke="#7aa7ff" strokeWidth="1.75" /><circle cx="11" cy="4" r="2" fill="#7aa7ff" /></svg>Simulated reading</span>
-        <span className="flex items-center gap-2"><svg width="12" height="12" aria-hidden><rect x="2" y="2" width="8" height="8" transform="rotate(45 6 6)" fill="#ededef" /></svg>Check run in this browser</span>
-        <span className="flex items-center gap-2"><svg width="22" height="8" aria-hidden><line x1="0" x2="22" y1="4" y2="4" stroke="#71717a" strokeDasharray="4 4" /></svg>Personal baseline (simulated)</span>
-        <span className="flex items-center gap-2"><span className="h-3 w-5 rounded-sm bg-accent/15" />Illustrative threshold band</span>
-        <span className="flex items-center gap-2"><Icon name="info" className="h-3.5 w-3.5" />Breaks in a line are missed readings</span>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {METRICS.map((k) => {
-          const m = METRIC_META[k];
-          const base = baseline?.[k];
-          return (
-            <section key={k} className="card p-5" aria-labelledby={`tr-${k}`}>
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <h2 id={`tr-${k}`} className="text-sm font-semibold text-fg">
-                                    {m.label}
-                </h2>
-                <span className="num text-xs text-fg-3">{m.unit} · baseline {fmt(base, m.digits)}</span>
-              </div>
-              {base === undefined
-                ? <p className="text-sm text-fg-2">No baseline, so no chart.</p>
-                : <TrendChart metric={k} data={data} baseline={base} />}
-              <p className="mt-2 text-xs text-fg-3">
-                {m.rule ? `Band: ${[m.rule.up && `+${m.rule.up}`, m.rule.down && `−${m.rule.down}`, m.rule.abs && `±${m.rule.abs}`].filter(Boolean).join(" / ")} ${m.unit} (illustrative, ${rules.engineVersion})` : "No demo threshold for this indicator"}
-              </p>
-            </section>
-          );
-        })}
-      </div>
-
-      <details className="card p-5">
-        <summary className="cursor-pointer text-sm font-medium text-fg">Show the data as a table</summary>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm num">
-            <thead className="text-xs text-fg-3">
-              <tr>
-                <th className="py-2 pr-4 font-medium">Day</th>
-                {METRICS.map((k) => <th key={k} className="py-2 pr-4 font-medium">{METRIC_META[k].short} ({METRIC_META[k].unit})</th>)}
-                <th className="py-2 font-medium">Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((p) => (
-                <tr key={p.missionDay} className="border-t border-edge text-fg-2">
-                  <td className="py-1.5 pr-4 text-fg-2">{p.missionDay}</td>
-                  {METRICS.map((k) => <td key={k} className="py-1.5 pr-4">{fmt(p[k], METRIC_META[k].digits)}</td>)}
-                  <td className="py-1.5 text-xs text-fg-3">{METRICS.every((k) => p[k] === undefined) ? "Missed" : p.source === "check" ? "Check" : "Simulated"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {latest && (
+        <div className="grid gap-5 md:grid-cols-2">
+          <Card title="Summary" icon="info">
+            <p className="text-sm text-fg-2 num">
+              <strong className="text-fg">{m.label}</strong>: Earth baseline {base} {m.unit}; latest (day {latest.missionDay}) {latest[metric]!.toFixed(m.digits)} {m.unit};
+              change {signed(latest[metric]! - base, m.digits)} {m.unit} ({signedPct(pctDelta(latest[metric]!, base))}).
+            </p>
+            {first && first !== latest && (
+              <p className="mini mt-2 num">Since day {first.missionDay}: {first[metric]!.toFixed(m.digits)} → {latest[metric]!.toFixed(m.digits)} {m.unit}.</p>
+            )}
+            <p className="mini mt-2">A trend is context for review, not a diagnosis.</p>
+          </Card>
+          <Card title="Readings" icon="list">
+            <table className="w-full text-sm">
+              <thead><tr className="text-left text-xs uppercase tracking-wider text-fg-3"><th className="py-1">Day</th><th className="py-1 text-right">{m.unit}</th><th className="py-1 text-right">Source</th></tr></thead>
+              <tbody>
+                {pts.map((p) => (
+                  <tr key={p.missionDay} className="border-t border-edge/60">
+                    <td className="num py-1.5">D{p.missionDay}</td>
+                    <td className="num py-1.5 text-right">{p[metric]!.toFixed(m.digits)}</td>
+                    <td className="py-1.5 text-right text-xs text-fg-3">
+                      {p.origin === "simulated" ? "Fictional" : p.origin === "check-in" ? "Check-in" : <span className="inline-flex items-center gap-1"><Icon name="clock" className="h-3 w-3" />Current</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
         </div>
-      </details>
+      )}
     </div>
   );
 }

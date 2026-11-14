@@ -1,170 +1,114 @@
-// Body map (FR-12, file 10 §7; P2 in file 13 §11). It groups the app's existing inputs and symptom types by body
-// area so they are easier to find. It never locates, infers or diagnoses anything (FR-12: no diagnostic certainty).
-// Region highlights come only from rules that already fired in the local engine; colour is always paired with a
-// pattern, an icon and a text label (NFR-06). No animation.
-import { useId } from "react";
-import type { AssessmentResult, SymptomType } from "../types/health";
-import type { Metric } from "../lib/history";
-import { FIELD_LABELS, Icon } from "./ui";
+// F08 Body map (file 07 §4): brain/head, heart, lungs, blood/immune, bones, sleep/mood. Shows related current values,
+// reported symptoms and fired rules, with a no-causation note. It groups inputs; it never locates or diagnoses.
+import { useState } from "react";
+import { ENV, LABS, SYMPTOMS, VITALS, type RegionId } from "../data/catalog";
+import { signed, signedPct } from "../lib/deltas";
+import type { Ctx } from "../appTypes";
+import type { RuleHit, SymptomId } from "../types/health";
+import { Card, Icon, SimTag, fmt } from "./ui";
 
-export type RegionId = "head" | "chest" | "core" | "limbs";
-export type RegionLevel = "RED" | "YELLOW" | "NONE";
-
-export const REGIONS: Record<RegionId, { label: string; symptoms: SymptomType[]; inputs: (Metric | "mood")[] }> = {
-  head: { label: "Head", symptoms: ["headache", "dizziness", "fainting", "sleep_problems"], inputs: ["sleepHours", "mood"] },
-  chest: { label: "Chest", symptoms: ["chest_pain", "shortness_of_breath"], inputs: ["heartRateBpm", "systolicMmHg", "diastolicMmHg"] },
-  core: { label: "Whole body", symptoms: ["unusual_fatigue", "other"], inputs: ["temperatureC", "fatigueScore"] },
-  limbs: { label: "Arms and legs", symptoms: ["muscle_weakness"], inputs: [] },
+const REGIONS: Record<RegionId, { label: string; refs: string[]; symptoms: SymptomId[]; note: string; pos: { top: string; left: string } }> = {
+  brain: { label: "Brain / head", refs: [], symptoms: ["headache", "dizziness", "nausea", "difficulty_concentrating"], pos: { top: "6%", left: "60%" },
+    note: "Relevant context: sleep quality, mood, cabin CO₂ and circadian timing. No individual cause is inferred." },
+  sleep: { label: "Sleep / mood", refs: [VITALS.sleep.ref, VITALS.mood.ref, "survey.fatigue"], symptoms: ["fatigue"], pos: { top: "17%", left: "4%" },
+    note: "Record sleep, fatigue and mood alongside the light cycle and workload. Persistent concerns warrant review under crew protocols." },
+  heart: { label: "Heart / circulation", refs: [VITALS.hr.ref, VITALS.sbp.ref, VITALS.dbp.ref], symptoms: [], pos: { top: "31%", left: "56%" },
+    note: "Relevant context: altered gravity, hydration and measurement conditions (posture, time of day, device)." },
+  lungs: { label: "Lungs / breathing", refs: [ENV.co2Pct.ref], symptoms: ["severe_breathing_difficulty"], pos: { top: "38%", left: "6%" },
+    note: "Cabin CO₂ alone does not establish respiratory impairment. This prototype collects no oxygenation data." },
+  blood: { label: "Blood / immune", refs: [LABS.hemoglobin.ref, LABS.wbc.ref, LABS.glucose.ref], symptoms: [], pos: { top: "55%", left: "55%" },
+    note: "Values are fictional. Lab interpretation needs specimen and reference context. A change is not a diagnosis." },
+  bones: { label: "Bones / muscles", refs: [LABS.calcium.ref], symptoms: [], pos: { top: "75%", left: "8%" },
+    note: "Microgravity can affect bone and muscle physiology. Serum calcium alone does not quantify bone density." },
 };
-export const REGION_IDS = Object.keys(REGIONS) as RegionId[];
+const IDS = Object.keys(REGIONS) as RegionId[];
 
-const FIELD_REGION: Record<string, RegionId> = {};
-for (const id of REGION_IDS) for (const f of REGIONS[id].inputs) FIELD_REGION[f] = id;
-const SYMPTOM_REGION: Record<string, RegionId> = {};
-for (const id of REGION_IDS) for (const s of REGIONS[id].symptoms) SYMPTOM_REGION[s] = id;
-
-/** Which fired rules belong to which region. Rules that are not region-specific (e.g. concurrent deviations) are left out. */
-export function regionRules(result: AssessmentResult | null) {
-  const out: Record<RegionId, AssessmentResult["triggeredRules"]> = { head: [], chest: [], core: [], limbs: [] };
-  if (!result) return out;
-  for (const r of result.triggeredRules) {
-    let region: RegionId | undefined;
-    if (r.ruleId.startsWith("DEV_")) region = FIELD_REGION[r.ruleId.slice(4)];
-    else if (r.ruleId.startsWith("SYM_RED_")) region = SYMPTOM_REGION[r.ruleId.slice(8)];
-    else if (r.ruleId.startsWith("SYM_")) region = SYMPTOM_REGION[r.ruleId.slice(4)];
-    else if (r.ruleId === "MOOD_LOW") region = "head";
-    if (region) out[region].push(r);
-  }
-  return out;
+function regionHits(id: RegionId, fired: RuleHit[], reported: SymptomId[]): RuleHit[] {
+  const r = REGIONS[id];
+  return fired.filter((h) => {
+    if (h.refs.some((ref) => r.refs.includes(ref))) return true;
+    if (h.id === "RED-TRAIN-BREATHING") return id === "lungs";
+    if (h.id === "YEL-SYMPTOMS") return reported.some((sid) => SYMPTOMS[sid].region === id);
+    return false;
+  });
 }
 
-export function regionLevel(rules: AssessmentResult["triggeredRules"]): RegionLevel {
-  if (rules.some((r) => r.level === "RED")) return "RED";
-  return rules.length ? "YELLOW" : "NONE";
-}
+export function BodyMapScreen({ ctx }: { ctx: Ctx }) {
+  const { live, snapshot: s, baseline: b } = ctx;
+  const [sel, setSel] = useState<RegionId>("heart");
+  const reported = s.survey.symptoms.map((x) => x.id);
+  const state = (id: RegionId) => {
+    const hits = regionHits(id, live.rulesFired, reported);
+    const syms = reported.filter((sid) => SYMPTOMS[sid].region === id);
+    const level = hits.some((h) => h.level === "RED") ? "RED" : hits.length ? "YELLOW" : syms.length ? "SYMPTOM" : "NONE";
+    return { hits, syms, level };
+  };
+  const r = REGIONS[sel];
+  const st = state(sel);
 
-export const LEVEL_TEXT: Record<RegionLevel, { label: string; cls: string; icon: "octagon" | "alert" | "check" }> = {
-  RED: { label: "Red rule fired", cls: "text-red-300", icon: "octagon" },
-  YELLOW: { label: "Flagged", cls: "text-amber-300", icon: "alert" },
-  NONE: { label: "No rule fired", cls: "text-fg-3", icon: "check" },
-};
-
-const FILL: Record<RegionLevel, { fill: string; stroke: string; pattern: string | null }> = {
-  RED: { fill: "rgba(248,113,113,0.26)", stroke: "rgba(248,113,113,0.9)", pattern: "hatch" },
-  YELLOW: { fill: "rgba(251,191,36,0.2)", stroke: "rgba(251,191,36,0.85)", pattern: "dots" },
-  NONE: { fill: "#1d1d21", stroke: "#34343a", pattern: null },
-};
-
-// Figure geometry (viewBox 0 0 200 420), all filled shapes.
-const SHAPES: Record<RegionId, string[]> = {
-  head: ["M100 14C113 14 122 25 122 40C122 55 113 66 100 66C87 66 78 55 78 40C78 25 87 14 100 14Z"],
-  chest: ["M66 84C80 78 120 78 134 84C146 89 150 98 148 112L141 168H59L52 112C50 98 54 89 66 84Z"],
-  core: ["M59 172H141L138 222C136 236 124 244 100 246C76 244 64 236 62 222Z"],
-  limbs: [
-    "M50 98C40 104 36 120 35 140L31 200C30 214 28 228 27 238C27 246 37 247 39 239L45 204L52 150C54 132 54 112 50 98Z",
-    "M150 98C160 104 164 120 165 140L169 200C170 214 172 228 173 238C173 246 163 247 161 239L155 204L148 150C146 132 146 112 150 98Z",
-    "M66 250C64 290 66 330 70 370L72 404C72 411 88 411 88 404L92 340L98 254Z",
-    "M134 250C136 290 134 330 130 370L128 404C128 411 112 411 112 404L108 340L102 254Z",
-  ],
-};
-const MARKER: Record<RegionId, [number, number]> = { head: [126, 22], chest: [146, 92], core: [140, 186], limbs: [172, 214] };
-
-export function BodyMap({ result, selected, onSelect, className = "" }: {
-  result: AssessmentResult | null; selected?: RegionId | null; onSelect?: (r: RegionId) => void; className?: string;
-}) {
-  const uid = useId().replace(/:/g, "");
-  const byRegion = regionRules(result);
+  const rows = r.refs.map((ref) => {
+    const d = live.deltas.find((x) => x.ref === ref);
+    if (d) return { ref, label: d.label, text: `${d.current.toFixed(d.digits)} ${d.unit} vs Earth ${d.baseline.toFixed(d.digits)} (${signed(d.abs, d.digits)}, ${signedPct(d.pct)})` };
+    if (ref === "survey.fatigue") return { ref, label: "Fatigue", text: `${s.survey.fatigue ?? "—"}/10 (no Earth baseline)` };
+    if (ref === ENV.co2Pct.ref) return { ref, label: "Cabin CO₂", text: `${fmt(s.env.co2Pct, 2)}% (context only)` };
+    return { ref, label: ref, text: "Not measured" };
+  });
 
   return (
-    <svg viewBox="0 0 200 420" role="group" aria-label="Body map. Groups inputs by body area. It does not diagnose."
-      className={`h-full w-full ${className}`}>
-      <defs>
-        <pattern id={`hatch-${uid}`} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="5" stroke="#fca5a5" strokeWidth="1.2" strokeOpacity="0.7" />
-        </pattern>
-        <pattern id={`dots-${uid}`} width="5" height="5" patternUnits="userSpaceOnUse">
-          <circle cx="2.5" cy="2.5" r="0.9" fill="#fcd34d" fillOpacity="0.8" />
-        </pattern>
-      </defs>
-      <rect x="92" y="62" width="16" height="20" rx="6" fill="#1d1d21" stroke="#34343a" />
-
-      {REGION_IDS.map((id) => {
-        const level = regionLevel(byRegion[id]);
-        const f = FILL[level];
-        const isSel = selected === id;
-        const interactive = !!onSelect;
-        const label = `${REGIONS[id].label}: ${LEVEL_TEXT[level].label}${byRegion[id].length ? `, ${byRegion[id].length} rule(s)` : ""}`;
-        return (
-          <g key={id} role={interactive ? "button" : "img"} aria-label={label} aria-pressed={interactive ? isSel : undefined}
-            tabIndex={interactive ? 0 : undefined}
-            onClick={interactive ? () => onSelect(id) : undefined}
-            onKeyDown={interactive ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(id); } } : undefined}
-            className={`${interactive ? "cursor-pointer" : ""} outline-none transition-[filter] [&:focus-visible]:brightness-150 [&:hover]:brightness-125`}>
-            {SHAPES[id].map((d, i) => (
-              <g key={i}>
-                <path d={d} fill={f.fill} stroke={isSel ? "#7aa7ff" : f.stroke} strokeWidth={isSel ? 2 : 1} strokeLinejoin="round" />
-                {f.pattern && <path d={d} fill={`url(#${f.pattern}-${uid})`} />}
-              </g>
-            ))}
-          </g>
-        );
-      })}
-
-      {/* Markers so a flagged region never relies on colour alone */}
-      {REGION_IDS.map((id) => {
-        const level = regionLevel(byRegion[id]);
-        if (level === "NONE") return null;
-        const [x, y] = MARKER[id];
-        return (
-          <g key={`m-${id}`} aria-hidden pointerEvents="none">
-            {level === "RED"
-              ? <path d={`M${x - 4.5} ${y - 11}h9l6.5 6.5v9l-6.5 6.5h-9l-6.5-6.5v-9Z`} fill="#f87171" stroke="#0b0b0c" strokeWidth="2" />
-              : <path d={`M${x} ${y - 11}L${x + 11} ${y + 9}H${x - 11}Z`} fill="#fbbf24" stroke="#0b0b0c" strokeWidth="2" strokeLinejoin="round" />}
-            <text x={x} y={y + (level === "RED" ? 4 : 6)} textAnchor="middle" fontSize="11" fontWeight="700" fill="#0b0b0c">!</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-/** Text legend + region list beside the map (the accessible, colour-independent reading of the same data). */
-export function RegionList({ result, selected, onSelect }: {
-  result: AssessmentResult | null; selected?: RegionId | null; onSelect?: (r: RegionId) => void;
-}) {
-  const byRegion = regionRules(result);
-  return (
-    <ul className="divide-y divide-edge overflow-hidden rounded-lg border border-edge">
-      {REGION_IDS.map((id) => {
-        const level = regionLevel(byRegion[id]);
-        const t = LEVEL_TEXT[level];
-        const isSel = selected === id;
-        const inner = (
-          <>
-            <span className="flex items-center justify-between gap-3">
-              <span className="text-sm font-medium text-fg">{REGIONS[id].label}</span>
-              <span className={`flex items-center gap-1.5 text-xs font-medium ${result ? t.cls : "text-fg-3"}`}>
-                {result && <Icon name={t.icon} className="h-3.5 w-3.5" strokeWidth={2.2} />}{result ? t.label : "No check yet"}
-              </span>
-            </span>
-            <span className="mt-0.5 block text-xs leading-relaxed text-fg-3">
-              {[...REGIONS[id].inputs.map((f) => (f === "mood" ? "Mood" : FIELD_LABELS[f])), ...REGIONS[id].symptoms.map((s) => s.replace(/_/g, " "))].join(", ")}
-            </span>
-          </>
-        );
-        return (
-          <li key={id}>
-            {onSelect ? (
-              <button type="button" onClick={() => onSelect(id)} aria-pressed={isSel}
-                className={`block w-full px-3.5 py-2.5 text-left transition-colors ${isSel ? "bg-surface-3" : "hover:bg-surface-2"}`}>
-                {inner}
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <Card title="Interactive body map" icon="body" aside={<SimTag />}>
+        <p className="mini mb-3">Select a region to see related values, symptoms and context. Markers show where a rule fired or a symptom was reported.</p>
+        <div className="relative mx-auto flex min-h-[380px] max-w-[420px] items-center justify-center rounded-xl bg-card-2">
+          <svg viewBox="0 0 170 320" aria-hidden className="h-[340px] w-[190px]">
+            <circle cx="85" cy="35" r="29" fill="#1e5871" stroke="#76c8e8" strokeWidth="2" />
+            <rect x="72" y="63" width="26" height="21" rx="8" fill="#1e5871" />
+            <path d="M52 82 Q85 72 118 82 L132 185 L109 197 L108 288 Q108 307 96 307 L86 307 L85 204 L82 204 L81 307 L70 307 Q58 305 59 288 L61 197 L38 185Z" fill="#1e5871" stroke="#76c8e8" strokeWidth="2" />
+            <path d="M52 88 L23 180 L36 186 L68 111 M118 88 L147 180 L134 186 L102 111" fill="#1e5871" stroke="#76c8e8" strokeWidth="2" />
+          </svg>
+          {IDS.map((id) => {
+            const { level } = state(id);
+            const on = sel === id;
+            return (
+              <button key={id} type="button" onClick={() => setSel(id)} aria-pressed={on} style={REGIONS[id].pos}
+                className={`absolute flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                  on ? "border-accent bg-action text-white" : "border-[#9cd4e8]/70 bg-[#164f68] text-white hover:bg-[#3489a4]"}`}>
+                {level === "RED" && <Icon name="octagon" className="h-3.5 w-3.5 text-bad-fg" aria-label="red rule" />}
+                {level === "YELLOW" && <Icon name="alert" className="h-3.5 w-3.5 text-warn-fg" aria-label="review flag" />}
+                {level === "SYMPTOM" && <Icon name="info" className="h-3.5 w-3.5 text-accent" aria-label="symptom reported" />}
+                {REGIONS[id].label.split(" / ")[0]}
               </button>
-            ) : <div className="px-3.5 py-2.5">{inner}</div>}
-          </li>
-        );
-      })}
-    </ul>
+            );
+          })}
+        </div>
+        <ul className="mt-3 flex flex-wrap gap-3 text-xs text-fg-3">
+          <li className="flex items-center gap-1"><Icon name="octagon" className="h-3.5 w-3.5 text-bad-fg" />Red training rule</li>
+          <li className="flex items-center gap-1"><Icon name="alert" className="h-3.5 w-3.5 text-warn-fg" />Review flag</li>
+          <li className="flex items-center gap-1"><Icon name="info" className="h-3.5 w-3.5 text-accent" />Symptom reported</li>
+        </ul>
+      </Card>
+
+      <Card title={r.label} icon="target">
+        <h3 className="text-sm font-semibold text-fg-2">Related current values</h3>
+        {rows.length ? (
+          <ul className="mt-2 divide-y divide-edge/60 text-sm">
+            {rows.map((x) => <li key={x.ref} className="num flex justify-between gap-3 py-2"><span className="text-fg-3">{x.label}</span><span className="text-right">{x.text}</span></li>)}
+          </ul>
+        ) : <p className="mini mt-1">No direct measurement in this prototype. See symptoms and context below.</p>}
+
+        <h3 className="mt-4 text-sm font-semibold text-fg-2">Symptoms</h3>
+        <p className="mt-1 text-sm">
+          {st.syms.length ? st.syms.map((sid) => SYMPTOMS[sid].label).join(", ") : <span className="text-fg-3">None reported for this region.</span>}
+        </p>
+        <p className="mini">Tracked here: {r.symptoms.length ? r.symptoms.map((sid) => SYMPTOMS[sid].label.toLowerCase()).join(", ") : "none"}.</p>
+
+        <h3 className="mt-4 text-sm font-semibold text-fg-2">Rules fired (live)</h3>
+        {st.hits.length ? (
+          <ul className="mt-1 space-y-1 text-sm">{st.hits.map((h) => <li key={h.id} className="flex gap-2"><Icon name={h.level === "RED" ? "octagon" : "alert"} className={`mt-0.5 h-4 w-4 shrink-0 ${h.level === "RED" ? "text-bad-fg" : "text-warn-fg"}`} />{h.text}</li>)}</ul>
+        ) : <p className="mini mt-1">None for this region.</p>}
+
+        <p className="callout mt-4">{r.note} The body map groups inputs to help you find them. It does not locate or diagnose anything.</p>
+        {sel === "blood" && <p className="mini mt-2">Earth baselines: Hb {b.labs.hemoglobin} g/L, WBC {b.labs.wbc} ×10⁹/L, glucose {b.labs.glucose} mmol/L.</p>}
+      </Card>
+    </div>
   );
 }
-
-export const BODY_MAP_NOTE = "Groups your inputs by body area to help you find them. It does not locate or diagnose anything.";
