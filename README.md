@@ -26,6 +26,7 @@ Health Data -> Personal Baseline -> Trend Recognition -> Assessment -> Action ->
 | `10-requirements-and-technical-design.md` | The SRS: functional and non-functional requirements, data contracts, tests, stack, Day 1/Day 2 plan. **Build from this** |
 | `11-reconciliation.md` | Where the SRS, lab docs, and innovation ideas disagree, decisions to make, and how the innovation pillars fit safely |
 | `12-architecture-plan.md` | Chosen flow (form, Gemini API, display), stack (React, Tailwind, TypeScript), plan only |
+| `13-technical-build-plan.md` | Technical build plan derived from 10, 11 and 12: contracts, rules engine, Gemini proxy and guard, screens, tests, Day 1/Day 2 schedule |
 | `09-gaps-and-innovation.md` | Gap analysis, data strategy, NASA benefit, differentiation, and the iterated innovation thesis |
 
 ## Quick facts
