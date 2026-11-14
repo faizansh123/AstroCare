@@ -12,7 +12,7 @@ export default {
         edge: { DEFAULT: "#25445d", strong: "#365570" },
         fg: { DEFAULT: "#e8f3ff", 2: "#b5cbe0", 3: "#96aec7" },
         accent: { DEFAULT: "#4be0d6", 2: "#54d4e4" },
-        action: { DEFAULT: "#2d8fbb", 2: "#1c3e57" },
+        action: { DEFAULT: "#246f91", hover: "#216584", 2: "#1c3e57" },
         earth: "#4daee7",
         space: "#b69bff",
         ok: { bg: "#12483b", fg: "#81f1bf", line: "#2f8a6d" },

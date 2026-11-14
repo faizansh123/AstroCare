@@ -182,7 +182,10 @@ export default function App() {
             <Icon name="clock" className="h-3.5 w-3.5" />Vitals {ago(snapshot.vitals.measuredAt, now)}{stale ? " · stale" : ""}
           </span>
           <span className="ml-auto flex items-center gap-2">
-            <StatusChip status={live.status} />
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-fg-2">Current inputs preview</span>
+              <StatusChip status={live.status} />
+            </span>
             <span className={`chip border ${online ? "border-ok-line/50 text-ok-fg" : "border-unk-line text-unk-fg"} bg-card-2`}>
               <Icon name={online ? "wifi" : "wifi-off"} className="h-3.5 w-3.5" />
               {online ? "Online" : "Offline: rules still work"}

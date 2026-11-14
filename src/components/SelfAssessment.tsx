@@ -1,7 +1,7 @@
 // F04 Daily self-assessment, 4-step stepper (D13, file 07 §6): 1 Symptoms and feelings -> 2 Measurements ->
 // 3 Lifestyle and environment -> 4 Review (shows missing or invalid fields, then Calculate).
 // Stores sleep in hours (D11), fatigue 0-10 (D10), mood 1-10 (D9). Quick-pick chips only fill the number.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import rules from "../data/rules.json";
 import { ENV, FATIGUE, SYMPTOMS, SYMPTOM_IDS, VITALS, fatigueBand, moodBand, type VitalKey } from "../data/catalog";
 import { assess } from "../lib/rules";
@@ -12,6 +12,18 @@ import { StatusBanner } from "./StatusBadge";
 import { Card, Icon, MeasureField, ago, type IconName } from "./ui";
 
 const STEPS = ["Symptoms", "Measurements", "Lifestyle", "Review"] as const;
+// Field ownership is UI metadata only; validation remains in the existing rules pipeline.
+const STEP_FIELDS = [
+  ["vitals.sleep", "survey.fatigue", "vitals.mood", "survey.symptoms"],
+  ["vitals.hr", "vitals.sbp", "vitals.dbp", "vitals.temp", "data.age"],
+  ["env.co2Pct", "env.cabinTempC", "env.humidityPct"],
+];
+const FIELD_TARGETS: Record<string, string> = {
+  "vitals.sleep": "sa-sleep", "survey.fatigue": "sa-fatigue", "vitals.mood": "sa-mood",
+  "survey.symptoms": "sa-symptoms", "data.age": "sa-remeasure",
+  ...Object.fromEntries(["hr", "sbp", "dbp", "temp"].map((k) => [`vitals.${k}`, `sa-${k}`])),
+  ...Object.fromEntries(["co2Pct", "cabinTempC", "humidityPct"].map((k) => [`env.${k}`, `sa-${k}`])),
+};
 const SLEEP_PICKS: [string, number][] = [["≥ 8 h", 8], ["6–7 h", 6.5], ["4–5 h", 4.5], ["< 4 h", 3.5]];
 const FATIGUE_PICKS: [string, number][] = [["None", 0], ["Mild", 3], ["Moderate", 5], ["High", 8]];
 const MOOD_PICKS: [string, number][] = [["Very good", 10], ["Good", 8], ["Neutral", 6], ["Low", 4], ["Very low", 2]];
@@ -38,6 +50,26 @@ function Picks({ picks, value, onPick, label }: { picks: [string, number][]; val
 
 export function SelfAssessment({ ctx }: { ctx: Ctx }) {
   const [step, setStep] = useState(0);
+  const [visited, setVisited] = useState<number[]>([0]);
+  const content = useRef<HTMLDivElement>(null);
+  const focusTarget = useRef<string | null>(null);
+  const navigate = (next: number, target?: string) => {
+    if (next === step) return;
+    focusTarget.current = target ?? "heading";
+    setVisited((previous) => previous.includes(next) ? previous : [...previous, next]);
+    setStep(next);
+  };
+  useEffect(() => {
+    if (!focusTarget.current) return;
+    const target = focusTarget.current === "heading"
+      ? content.current?.querySelector("h2")
+      : document.getElementById(focusTarget.current);
+    if (target) {
+      if (target.tagName === "H2") target.tabIndex = -1;
+      target.focus();
+    }
+    focusTarget.current = null;
+  }, [step]);
   const [d, setD] = useState<Snapshot>(() => structuredClone(ctx.snapshot));
   const now = ctx.now;
   const preview = useMemo(() => assess(d, ctx.baseline, Date.now()), [d, ctx.baseline]);
@@ -64,20 +96,26 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
     <div className="space-y-5">
       {/* Stepper */}
       <ol className="card flex items-center gap-2 overflow-x-auto p-4" aria-label="Progress">
-        {STEPS.map((label, i) => (
+        {STEPS.map((label, i) => {
+          const needsAttention = i < 3 && preview.dataIssues.some((issue) => STEP_FIELDS[i].includes(issue.field));
+          const complete = i < 3 && visited.includes(i) && !needsAttention;
+          const state = needsAttention ? "Needs attention" : complete ? "Complete" : visited.includes(i) ? "Visited" : "Not visited";
+          return (
           <li key={label} className="flex flex-1 items-center gap-2">
-            <button type="button" onClick={() => setStep(i)} aria-current={step === i ? "step" : undefined}
+            <button type="button" onClick={() => navigate(i)} aria-current={step === i ? "step" : undefined}
               className="flex shrink-0 flex-col items-center gap-1 sm:flex-row sm:gap-2">
               <span className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-bold ${
-                step === i ? "border-accent bg-action text-white" : i < step ? "border-accent/60 bg-card-3 text-accent" : "border-edge-strong text-fg-3"}`}>
-                {i < step ? <Icon name="check" className="h-4 w-4" strokeWidth={2.6} /> : i + 1}
+                step === i ? "border-accent bg-action text-white" : needsAttention ? "border-unk-line text-unk-fg" : complete ? "border-accent/60 bg-card-3 text-accent" : "border-edge-strong text-fg-3"}`}>
+                {complete ? <Icon name="check" className="h-4 w-4" strokeWidth={2.6} /> : needsAttention ? <Icon name="alert" className="h-4 w-4" /> : i + 1}
               </span>
-              <span className={`text-sm ${step === i ? "font-semibold text-accent" : "text-fg-3"}`}>{label}</span>
+              <span className={`text-sm ${step === i ? "font-semibold text-accent" : "text-fg-3"}`}>{label}<span className="block text-xs font-normal">{step === i ? `Current · ${state}` : state}</span></span>
             </button>
-            {i < STEPS.length - 1 && <span aria-hidden className={`h-0.5 min-w-[16px] flex-1 rounded ${i < step ? "bg-accent/60" : "bg-edge"}`} />}
+            {i < STEPS.length - 1 && <span aria-hidden className={`h-0.5 min-w-[16px] flex-1 rounded ${complete ? "bg-accent/60" : "bg-edge"}`} />}
           </li>
-        ))}
+        );})}
       </ol>
+
+      <div ref={content}>
 
       {step === 0 && (
         <Card title="Step 1 · Symptoms and feelings" icon="clipboard">
@@ -101,7 +139,7 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
             </Question>
             <Question icon="body" title="Are you experiencing any of the following?">
               <label className="mb-2 flex items-center gap-2 text-sm">
-                <input type="checkbox" className="h-4 w-4 accent-[#46c9c2]" checked={d.survey.symptomsAnswer === "none"}
+                <input id="sa-symptoms" type="checkbox" className="h-4 w-4 accent-[#46c9c2]" checked={d.survey.symptomsAnswer === "none"}
                   onChange={(e) => setSurvey(e.target.checked ? { symptomsAnswer: "none", symptoms: [] } : { symptomsAnswer: "unanswered" })} />
                 None of these
               </label>
@@ -138,7 +176,7 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
         <Card title="Step 2 · Measurements" icon="heart">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-edge bg-card-2 px-3 py-2">
             <p className="mini flex items-center gap-1.5"><Icon name="clock" className="h-4 w-4" />Readings taken {ago(d.vitals.measuredAt, now)}{errors["data.age"] ? ` · ${errors["data.age"]}` : ""}</p>
-            <button type="button" className="btn-ghost min-h-[34px] text-xs" onClick={() => setD((x) => ({ ...x, vitals: { ...x.vitals, measuredAt: new Date().toISOString() } }))}>I just re-measured these</button>
+            <button id="sa-remeasure" type="button" className="btn-ghost min-h-[34px] text-xs" onClick={() => setD((x) => ({ ...x, vitals: { ...x.vitals, measuredAt: new Date().toISOString() } }))}>I just re-measured these</button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {(["hr", "sbp", "dbp", "temp"] as VitalKey[]).map((k) => {
@@ -189,7 +227,15 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
             <div className="mt-4 rounded-xl border border-unk-line bg-unk-bg/40 p-4">
               <p className="flex items-center gap-2 font-semibold text-unk-fg"><Icon name="help" className="h-4 w-4" />Missing, invalid or stale</p>
               <ul className="mt-2 space-y-1 text-sm">
-                {preview.dataIssues.map((i, n) => <li key={n} className="flex gap-2"><span className="font-mono text-xs text-fg-3">{i.id}</span>{i.message}</li>)}
+                {preview.dataIssues.map((issue, n) => {
+                  const owner = STEP_FIELDS.findIndex((fields) => fields.includes(issue.field));
+                  const target = FIELD_TARGETS[issue.field];
+                  return <li key={n} className="flex gap-2"><span className="font-mono text-xs text-fg-3">{issue.id}</span>
+                    {owner >= 0 && target
+                      ? <a className="text-accent underline" href={`#${target}`} onClick={(event) => { event.preventDefault(); navigate(owner, target); }}>{issue.message}</a>
+                      : <span>{issue.message} <span className="text-fg-3">Review in {issue.field.startsWith("labs.") ? "SpaceLab" : "Environment"}.</span></span>}
+                  </li>;
+                })}
               </ul>
             </div>
           )}
@@ -209,10 +255,11 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
         </Card>
       )}
 
+      </div>
       <div className="flex flex-wrap justify-between gap-3">
-        <button type="button" className="btn-ghost" disabled={step === 0} onClick={() => setStep((n) => n - 1)}><Icon name="arrow-left" />Back</button>
+        <button type="button" className="btn-ghost" disabled={step === 0} onClick={() => navigate(step - 1)}><Icon name="arrow-left" />Back</button>
         {step < 3
-          ? <button type="button" className="btn-primary" onClick={() => setStep((n) => n + 1)}>Next: {["Enter measurements", "Lifestyle and environment", "Review"][step]}<Icon name="arrow-right" /></button>
+          ? <button type="button" className="btn-primary" onClick={() => navigate(step + 1)}>Next: {["Enter measurements", "Lifestyle and environment", "Review"][step]}<Icon name="arrow-right" /></button>
           : <button type="button" className="btn-primary" disabled={invalid.length > 0 && !trigger} onClick={calculate}>Save check-in and run assessment<Icon name="arrow-right" /></button>}
       </div>
     </div>

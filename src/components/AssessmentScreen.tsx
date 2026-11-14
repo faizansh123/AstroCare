@@ -44,6 +44,7 @@ export function AssessmentScreen({ ctx }: { ctx: Ctx }) {
       )}
 
       <StatusBanner status={a.status}>
+        <p className="mt-2 text-sm font-semibold text-fg-2">Assessment at <time dateTime={a.createdAt}>{new Date(a.createdAt).toLocaleString()}</time></p>
         <p className="mini mt-2">Run {ago(a.createdAt, now)} · rules {a.rulesVersion} · vitals {a.dataAgeHours === null ? "time unknown" : `${a.dataAgeHours} h old`} at run time · simulated data</p>
       </StatusBanner>
 
@@ -60,7 +61,17 @@ export function AssessmentScreen({ ctx }: { ctx: Ctx }) {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <Explanation assessment={a} snapshot={s} ai={ctx.ai} part="actions" />
+
+      <div className="flex flex-wrap justify-between gap-3">
+        <button type="button" className="btn-ghost" onClick={() => ctx.go("self-assessment")}><Icon name="arrow-left" />Back to self-assessment</button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn-secondary" onClick={() => ctx.go("log")}>View mission log</button>
+          <button type="button" className="btn-primary" onClick={() => ctx.go("guidance")}>View guidance<Icon name="arrow-right" /></button>
+        </div>
+      </div>
+
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Card title="Assessment summary" icon="list">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[420px] text-sm">
@@ -106,21 +117,15 @@ export function AssessmentScreen({ ctx }: { ctx: Ctx }) {
         </Card>
       </div>
 
-      <HazardCard ctx={ctx} />
+      <Explanation assessment={a} snapshot={s} ai={ctx.ai} part="evidence" />
 
-      <Explanation assessment={a} snapshot={s} ai={ctx.ai} />
+      <HazardCard ctx={ctx} />
 
       <Card title="Limitations" icon="info">
         <ul className="grid gap-1 text-sm text-fg-2 sm:grid-cols-2">{a.limitations.map((l) => <li key={l} className="flex gap-2"><span aria-hidden className="text-fg-3">•</span>{l}</li>)}</ul>
       </Card>
 
-      <div className="flex flex-wrap justify-between gap-3">
-        <button type="button" className="btn-ghost" onClick={() => ctx.go("self-assessment")}><Icon name="arrow-left" />Back to self-assessment</button>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={() => ctx.go("log")}>View mission log</button>
-          <button type="button" className="btn-primary" onClick={() => ctx.go("guidance")}>View guidance<Icon name="arrow-right" /></button>
-        </div>
-      </div>
+
     </div>
   );
 }

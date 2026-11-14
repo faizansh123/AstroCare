@@ -84,7 +84,7 @@ The mockup numbers (for example HR 96, +24) are illustrative and are **not** can
 | Card | #10263c, border #25445d |
 | Text | #e8f3ff, muted #96aec7 |
 | Accent (teal) | #4be0d6 / #54d4e4 |
-| Button | #2d8fbb |
+| Button (accepted audit 01 override) | #246f91; primary hover #216584 (prototype originally #2d8fbb) |
 | Green badge | bg #12483b, text #81f1bf |
 | Yellow badge | bg #54401a, text #ffd581 |
 | Red badge | bg #5a2334, text #ffacb4 |
@@ -92,6 +92,8 @@ The mockup numbers (for example HR 96, +24) are illustrative and are **not** can
 | Font | Inter, system-ui, Segoe UI |
 
 Status must never rely on color alone: always pair color with text and an icon.
+
+Accepted accessibility adjustment (UI-UX-AUDIT item 01): the shared action background is darkened for white normal-size labels, and primary buttons use an explicit hover background instead of a brightness filter. Selected controls inherit the action token. Guidance retains its 80% action background and 80% white supporting text; check their composited contrast against the dark page surfaces, rather than treating them as opaque colors. Secondary action and status tokens are unchanged. Preserve and verify the existing visible focus outline.
 
 ## 6. Differences between the two references (resolved in file 11)
 

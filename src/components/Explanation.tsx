@@ -15,7 +15,7 @@ function refLabel(ref: string) {
   return GUIDE_TITLES[ref] ?? FIELD_REFS[ref] ?? ref;
 }
 
-function Section({ title, icon, items }: { title: string; icon: IconName; items: AiItem[] }) {
+export function ExplanationSection({ title, icon, items }: { title: string; icon: IconName; items: AiItem[] }) {
   if (!items.length) return null;
   return (
     <section>
@@ -24,13 +24,12 @@ function Section({ title, icon, items }: { title: string; icon: IconName; items:
         {items.map((it, i) => (
           <li key={i} className="rounded-lg bg-card-2 px-3 py-2">
             <p className="text-[14px] leading-relaxed text-fg-2">{it.text}</p>
-            <p className="mt-1 flex flex-wrap gap-1" aria-label="Based on">
-              {it.refs.map((r) => (
-                <span key={r} className={`rounded px-1.5 py-0.5 text-[10.5px] font-medium ${r.startsWith("guide.") ? "bg-space/15 text-space" : r.startsWith("rules.") ? "bg-warn-bg/60 text-warn-fg" : "bg-earth/15 text-earth"}`}>
-                  {refLabel(r)}
-                </span>
-              ))}
-            </p>
+            <details className="mt-1">
+              <summary className="cursor-pointer text-sm text-fg-3">Sources<span className="sr-only"> for {title}, statement {i + 1}</span></summary>
+              <ul className="mt-2 space-y-1 text-sm text-fg-2" aria-label="Based on">
+                {it.refs.map((r) => <li key={r}>{refLabel(r)} <span className="text-fg-3">({r})</span></li>)}
+              </ul>
+            </details>
           </li>
         ))}
       </ul>
@@ -38,39 +37,54 @@ function Section({ title, icon, items }: { title: string; icon: IconName; items:
   );
 }
 
-export function Explanation({ assessment, snapshot, ai }: { assessment: Assessment; snapshot: Snapshot; ai: AiState }) {
+// Audit #25 splits presentation only; both regions retain the same source selection and refs.
+export function Explanation({ assessment, snapshot, ai, part = "all" }: {
+  assessment: Assessment; snapshot: Snapshot; ai: AiState; part?: "all" | "actions" | "evidence";
+}) {
   const fromAi = ai.outcome?.ai ?? null;
   const shown = fromAi ?? templateExplanation(assessment, snapshot);
   return (
     <div className="card">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-base font-semibold"><Icon name="sparkles" className="h-[18px] w-[18px] text-accent-2" />Explanation</h2>
-        {fromAi ? (
-          <span className="chip border border-accent/40 bg-card-3 text-accent"><Icon name="check" className="h-3.5 w-3.5" />Gemini explanation · passed response check{ai.outcome?.model ? ` · ${ai.outcome.model}` : ""}</span>
-        ) : ai.loading ? (
-          <span className="chip bg-card-3 text-fg-2"><Icon name="refresh" className="h-3.5 w-3.5" />Offline explanation shown · checking for Gemini…</span>
-        ) : (
-          <span className="chip bg-card-3 text-fg-2" title={ai.outcome?.reason}><Icon name="info" className="h-3.5 w-3.5" />Offline explanation{ai.outcome?.reason ? ` · ${ai.outcome.reason}` : ""}</span>
-        )}
-      </div>
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="space-y-5">
-          <Section title="Observed evidence" icon="target" items={shown.observedEvidence} />
-          <Section title="Earth baseline comparison" icon="heart" items={shown.baselineComparison} />
-        </div>
-        <div className="space-y-5">
-          <Section title="Possible contextual factors (not causes)" icon="orbit" items={shown.contextualFactors} />
-          <Section title="Missing or uncertain information" icon="help" items={shown.missingOrUncertain} />
-          <Section title="Spaceflight hazards: possible factors (not causes)" icon="orbit" items={shown.spaceHazards} />
-          <Section title="Recommended verification" icon="check" items={shown.recommendedVerification} />
-          <Section title="Escalation pathway" icon="shield" items={[shown.escalationPathway]} />
+        <h2 className="flex items-center gap-2 text-base font-semibold"><Icon name="sparkles" className="h-[18px] w-[18px] text-accent-2" />{part === "actions" ? "Verification and escalation" : "Explanation"}</h2>
+        <div className="flex flex-wrap items-start gap-3">
+          <span className="chip bg-card-3 text-fg-2"><Icon name={fromAi ? "check" : ai.loading ? "refresh" : "info"} className="h-3.5 w-3.5" />{fromAi ? "Gemini explanation" : ai.loading ? "Offline explanation · checking Gemini…" : "Offline explanation"}</span>
+          <details className="text-sm text-fg-2">
+            <summary className="cursor-pointer">Explanation details</summary>
+            <ul className="mt-2 space-y-1">
+              <li>{fromAi ? "Gemini explanation · passed response check" : ai.loading ? "Offline explanation shown · checking for Gemini…" : "Offline explanation"}</li>
+              {ai.outcome?.model && <li>Model: {ai.outcome.model}</li>}
+              {ai.outcome?.promptVersion && <li>Prompt version: {ai.outcome.promptVersion}</li>}
+              {ai.outcome?.reason && <li>Reason: {ai.outcome.reason}</li>}
+            </ul>
+          </details>
         </div>
       </div>
-      <p className="mini mt-4">
+      {part !== "evidence" && (
+        <div className="grid gap-5 lg:grid-cols-2">
+          <ExplanationSection title="Recommended verification" icon="check" items={shown.recommendedVerification} />
+          <ExplanationSection title="Escalation pathway" icon="shield" items={[shown.escalationPathway]} />
+        </div>
+      )}
+      {part !== "actions" && <div className="space-y-5">
+        <p className="text-sm text-fg-2">Readings and changes are listed in Assessment summary; contributing rules are listed in What changed? Expand the supporting explanation below for full wording and citations.</p>
+        {/* Native, uncontrolled disclosures retain their open state when Gemini replaces the template. */}
+        {shown.observedEvidence.length > 0 && <details>
+          <summary className="cursor-pointer text-sm font-semibold text-accent-2">Observed evidence · supporting explanation ({shown.observedEvidence.length})</summary>
+          <div className="mt-3"><ExplanationSection title="Observed evidence" icon="target" items={shown.observedEvidence} /></div>
+        </details>}
+        {shown.baselineComparison.length > 0 && <details>
+          <summary className="cursor-pointer text-sm font-semibold text-accent-2">Earth baseline comparison · supporting explanation ({shown.baselineComparison.length})</summary>
+          <div className="mt-3"><ExplanationSection title="Earth baseline comparison" icon="heart" items={shown.baselineComparison} /></div>
+        </details>}
+        <ExplanationSection title="Possible contextual factors (not causes)" icon="orbit" items={shown.contextualFactors} />
+        <ExplanationSection title="Missing or uncertain information" icon="help" items={shown.missingOrUncertain} />
+      </div>}
+      {part !== "actions" && <p className="mini mt-4">
         The status above comes from the local rules and is never changed by this text. Gemini text is shown only if every sentence cites a known input
         or approved guidance source, every number matches the inputs, and it contains no diagnosis, medication or causal claim. Otherwise the built-in
         rule-grounded text is shown.
-      </p>
+      </p>}
     </div>
   );
 }
