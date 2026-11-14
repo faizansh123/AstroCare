@@ -31,14 +31,14 @@ The features doc requires deterministic rules for status and an explanation laye
 | No secrets in the frontend | Gemini key lives only in the serverless function environment, never in the repo or client |
 | Status not decided by an LLM | Status is computed locally. The Gemini request carries the status, and the response check rejects any reply that states a different status |
 | Every sentence grounded | The response schema makes each statement carry `refs`, a list of input field IDs or approved guidance IDs. The app rejects statements whose refs do not exist and checks that any number quoted matches the input |
-| No causal claims | Fixed system prompt forbids them (for example "CO2 caused the headache"). Environment is described as context only |
+| No causal claims | Fixed system prompt forbids them (for example "CO2 caused the headache"). Environment and hazard links are described as possible factors only, and the response check rejects causal wording |
 | No invented values, citations, or treatment | Prompt forbids it. Response check drops unknown citations. Guidance comes only from the approved guidance snippets |
 | Works without network | Rules, charts, log, and the template explanation all work offline. Only the Gemini text needs a connection |
 | Privacy | Fictional data only. Send only what is needed, no names or real identifiers |
 
 ## 5. Gemini request and response (contract, not code)
 
-**Request carries:** latest validated measurements, Earth baselines and deltas, symptoms and severity, environment sample, lab results, data age and last-sync, mission phase, the rules result (status, rules fired, missing fields), and approved guidance snippets with IDs.
+**Request carries:** the hazard links (D24), latest validated measurements, Earth baselines and deltas, symptoms and severity, environment sample, lab results, data age and last-sync, mission phase, the rules result (status, rules fired, missing fields), and approved guidance snippets with IDs.
 
 **Response must contain (F06):**
 
@@ -49,7 +49,7 @@ The features doc requires deterministic rules for status and an explanation laye
 5. Missing or uncertain information (list)
 6. Recommended verification (list)
 7. Escalation pathway (text, "follow approved crew medical procedures")
-8. Space hazards (exactly 3: radiation exposure, cabin air, bone and muscle health; D24)
+8. Spaceflight hazards (exactly 5, one per NASA hazard: which reported symptoms may be related to it; D24)
 9. For every list item: `refs[]`
 
 **Build note (tested 14 Nov 2026, `gemini-3.5-flash-lite`):** Gemini returns 400 INVALID_ARGUMENT when the response schema contains `maxItems`. The schema sent to Gemini omits it; list limits are enforced by the zod schema in the response check instead. The response check also rejects any number not found in the inputs, deltas or rule thresholds.
@@ -66,19 +66,9 @@ Use Gemini's structured output (JSON with a response schema). Confirm the curren
 | Slow reply | Show rules result and template text immediately, swap in Gemini text if it arrives and validates |
 | Demo day outage | Cached example responses for the four demo scenarios plus the recorded backup demo |
 
-## 7. Planned structure (names only)
+## 7. Structure
 
-```
-src/types/        typed entities (Astronaut, Mission, Baseline, Observation, LabResult,
-                  SymptomSurvey, EnvironmentSample, Assessment, GuidanceArticle, LogEvent,
-                  RulesConfig, AiExplanation)
-src/data/         baselines, simulated scenarios, rules config, guidance entries, research panel
-src/lib/          validate, normalize, deltas, rules, explainTemplate, aiClient, logStore, exportLog
-src/components/   Shell, Dashboard, VitalSigns, SpaceLab, Environment, SelfAssessment (stepper),
-                  Assessment, BodyMap, Trends, Guidance, Research, MissionLog
-src/tests/        delta math, rule boundaries, scenarios, AI response check
-api/              Gemini proxy (serverless function)
-```
+As built: see `13-technical-build-plan.md` §3.
 
 ## 8. Build order
 
@@ -86,10 +76,9 @@ Follows the sprints in the master spec (file 07, section 12). The Gemini proxy a
 
 ## 9. Decisions still needed
 
-1. Gemini model and **who owns the API key and billing**
-2. Does Gemini receive approved guidance snippets (retrieval style) or only the inputs? (Default: snippets included, so refs can point to guidance IDs)
-3. Hosting: Vercel (matches the SRS) or other
-4. Stale-data limit (placeholder 24 h)
+1. **Who owns the API key and billing** (model in use: `gemini-3.5-flash-lite`; guidance snippets are sent)
+2. Hosting: Vercel (matches the SRS) or other. Deploy not tested yet
+3. Stale-data limit (placeholder 24 h in `rules.json`)
 
 ## 10. Risks specific to this flow
 

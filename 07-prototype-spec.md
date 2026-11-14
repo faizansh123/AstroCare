@@ -104,6 +104,7 @@ Evaluation order:
 Rules for the rules:
 
 - Environment and log events are **context only**. They never change the status and never claim a cause
+- Spaceflight hazard links (D24) show which of NASA's five hazards a reported symptom **may be related to**. Context only, never a cause, never change the status
 - Labs add deltas and review notes. They never diagnose anemia, infection, metabolic disease, or bone loss
 - Symptoms are always shown. "Seek help regardless of color" is always shown
 - Every result lists: readings, baselines, deltas, rules fired, timestamp, rules version, limitations
@@ -115,7 +116,7 @@ Pipeline: form -> validate and normalize -> **rules engine** -> serverless proxy
 
 **Input to Gemini:** validated measurements, baseline deltas, symptoms, environment, lab results, data age, mission phase, the rules result (status and rules fired), and approved guidance snippets.
 
-**Output contract (F06):** status (copied from rules, never changed), observed evidence, baseline comparison, possible contextual factors, missing or uncertain information, recommended verification, escalation pathway, and space hazards (D24: one note each for radiation exposure, cabin air, bone and muscle health; context only, never changes the status).
+**Output contract (F06):** status (copied from rules, never changed), observed evidence, baseline comparison, possible contextual factors, missing or uncertain information, recommended verification, escalation pathway, and spaceflight hazards (D24: one note for each of NASA's five hazards saying which reported symptoms may be related to it; never a cause, never changes the status).
 
 **Safety:** never say CO2 caused a headache, never invent values or citations, never give unapproved treatment, never override the status. **Every sentence must reference an input field or an approved guidance source**, and the app checks this before showing it.
 
@@ -153,6 +154,7 @@ Astronaut, Mission, Baseline, Observation, LabResult, SymptomSurvey, Environment
 | Severe breathing difficulty | RED training scenario, protocol text |
 | Required field missing | INSUFFICIENT DATA |
 | Export mission log | Chronological, with simulated provenance |
+| Headache with CO₂ 0.6% (D24) | Closed environment and gravity listed as possible factors, no causal wording, status unchanged |
 
 **Boundary tests:** HR +19 vs +20, sleep 6.0 vs 5.9, fatigue 6 vs 7, mood 5 vs 4, symptoms 1 vs 2, hemoglobin -9.9% vs -10%, CO2 0.49 vs 0.50, zero baseline guard.
 

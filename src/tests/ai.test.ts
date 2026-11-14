@@ -5,7 +5,7 @@ import { SCENARIOS } from "../data/scenarios";
 import { guardAiReply } from "../lib/aiGuard";
 import { templateExplanation } from "../lib/explainTemplate";
 import { assess } from "../lib/rules";
-import { buildUserPrompt } from "../prompts/explain.v3";
+import { buildUserPrompt } from "../prompts/explain.v4";
 import { explain, resetRateLimit, type GenerateFn } from "../../server/explain";
 import type { AiExplanation, Baseline } from "../types/health";
 

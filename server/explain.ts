@@ -4,7 +4,7 @@
 // Relative imports use .js so the compiled Node ESM function resolves them on Vercel.
 import { GoogleGenAI } from "@google/genai";
 import { ExplainRequestSchema, type AiExplanation } from "../src/types/health.js";
-import { AI_RESPONSE_JSON_SCHEMA, PROMPT_VERSION, SYSTEM_PROMPT, buildUserPrompt } from "../src/prompts/explain.v3.js";
+import { AI_RESPONSE_JSON_SCHEMA, PROMPT_VERSION, SYSTEM_PROMPT, buildUserPrompt } from "../src/prompts/explain.v4.js";
 import { guardAiReply } from "../src/lib/aiGuard.js";
 
 // D4 (file 13 §2): Flash-tier model from env. Confirm the current name in Google's docs.

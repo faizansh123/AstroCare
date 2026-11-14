@@ -7,6 +7,7 @@ import { SYMPTOMS } from "../data/catalog";
 import type { Assessment, Baseline, RuleHit, Snapshot } from "../types/health";
 import { computeDeltas, labValue, pctDelta, signed } from "./deltas";
 import { dataAgeHours, validate } from "./validate";
+import { linkHazards } from "./hazards";
 
 export const RULES_VERSION = rules.rulesVersion;
 
@@ -15,6 +16,7 @@ export const LIMITATIONS = [
   "Thresholds are illustrative demonstration rules, not validated flight medicine.",
   "Lab values show change from baseline only. They do not diagnose anything.",
   "Environment is context only. It never changes the status and is not treated as a cause.",
+  "Spaceflight hazard links show what a symptom may be related to. They are not a diagnosis or a proven cause.",
 ];
 
 const Y = rules.yellow;
@@ -81,6 +83,7 @@ export function assess(s: Snapshot, b: Baseline, now = Date.now()): Assessment {
   const age = dataAgeHours(s, now);
   return {
     status,
+    hazards: linkHazards(s), // possible factors only; computed after the status and never feeds back into it
     rulesFired: fired,
     context,
     dataIssues: issues,

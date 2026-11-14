@@ -57,7 +57,7 @@ Symptom options in the prototype: Fatigue, Headache, Dizziness, Nausea, Difficul
 | Cabin CO2 0.5 % or higher | Adds a context sentence only, no causation, status unchanged |
 | Otherwise | GREEN, "does not establish medical safety" |
 
-Prototype gaps the React build must close: no INSUFFICIENT DATA state, no input validation, no data-age or last-sync display, no real trend history, no export beyond the log JSON.
+Prototype gaps closed in the React build: INSUFFICIENT DATA state, input validation, data-age and last-sync display, saved trend history, mission log export and import.
 
 ## 4. Published research panel (as written in the prototype)
 

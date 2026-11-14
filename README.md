@@ -2,15 +2,15 @@
 
 Astronaut Health Monitoring and Decision-Support prototype. Team: Nabeeha Tabassum (PM, Clinical and Health Lead), Bruno Gomes Silva (frontend, dashboard), Subomi Otusanya (data, rules).
 
-**Status (14 November 2026): plan v2, React build in progress.** The app in `src/` implements the master spec (`07`): 11 screens, local rules engine (`src/data/rules.json`), Gemini explanation behind the proxy (`server/explain.ts`) with the offline template fallback. Run `npm run dev`, test with `npm test`.
+**Status (14 November 2026): v2 built** (branch `v2-rebuild`). The app in `src/` implements the master spec (`07`): 11 screens, local rules engine (`src/data/rules.json`), spaceflight hazard links (D24), and a Gemini explanation behind the proxy (`server/explain.ts`) with an offline template fallback. Run `npm run dev`, test with `npm test`. How the code is laid out: `13-technical-build-plan.md`.
 
 ## Summary
 
-AstroCare lets an astronaut compare simulated in-flight values with their Earth baseline, complete a four-step self-assessment, and get a status (GREEN, YELLOW, RED, INSUFFICIENT DATA) from deterministic illustrative rules. Gemini then explains the result in plain language with cited evidence, with an offline template fallback. Environment is context only. Everything is saved to a mission log. Decision support, not diagnosis.
+AstroCare lets an astronaut compare simulated in-flight values with their Earth baseline, complete a four-step self-assessment, and get a status (GREEN, YELLOW, RED, INSUFFICIENT DATA) from deterministic illustrative rules. Gemini then explains the result in plain language with cited evidence, with an offline template fallback. For each reported symptom, it shows which of NASA's five spaceflight hazards (space radiation, isolation and confinement, distance from Earth, gravity, closed or hostile environment) it may be related to, never as a proven cause. Environment and hazards are context only and never change the status. Everything is saved to a mission log. Decision support, not diagnosis.
 
 ## Flow
 
-Form -> validate -> rules engine -> serverless proxy -> Gemini -> response check -> display -> mission log.
+Form -> validate -> rules engine -> hazard links -> serverless proxy -> Gemini -> response check -> display -> mission log.
 Stack: React, Vite, Tailwind, TypeScript, Recharts, localStorage, Vercel.
 
 ## Source of truth order
@@ -27,7 +27,7 @@ Conflicts and decisions: `11-reconciliation.md`. Build from `07-prototype-spec.m
 
 | File | Holds |
 |---|---|
-| `CLAUDE.md` | Rules for coding sessions (kept as in the repo) |
+| `CLAUDE.md` | Rules for coding sessions |
 | `01-challenge-brief.md` | NASA challenge text |
 | `02-project-charter.md` | Charter with v2 amendments |
 | `03-stakeholders.md` | Stakeholders, grid fixed, v2 additions |
@@ -38,8 +38,9 @@ Conflicts and decisions: `11-reconciliation.md`. Build from `07-prototype-spec.m
 | `08-demo-and-pitch.md` | Four demo scenarios, checklist |
 | `09-gaps-and-innovation.md` | Gaps, NASA anchors, innovation |
 | `10-requirements-and-technical-design.md` | SRS |
-| `11-reconciliation.md` | Decisions D1 to D23, open decisions |
+| `11-reconciliation.md` | Decisions D1 to D24, open decisions |
 | `12-architecture-plan.md` | Architecture and API contract |
+| `13-technical-build-plan.md` | Build reference: how to run, code layout, what is not done |
 | `15-features-requirements-user-flows.md` | Features F01 to F12, flows |
 | `14-ui-design-and-prototype-reference.md` | Screens, demo values, design tokens |
 | `reference/` | Clickable HTML prototype, UI mockups, logo |
