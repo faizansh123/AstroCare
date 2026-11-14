@@ -43,4 +43,5 @@ Conflicts and decisions: `11-reconciliation.md`. Build from `07-prototype-spec.m
 | `13-technical-build-plan.md` | Build reference: how to run, code layout, what is not done |
 | `15-features-requirements-user-flows.md` | Features F01 to F12, flows |
 | `14-ui-design-and-prototype-reference.md` | Screens, demo values, design tokens |
+| `UI-UX-AUDIT.md` | Visual/usability review, 38 prioritized findings, screenshot evidence, and proposed repair order (14 November 2026) |
 | `reference/` | Clickable HTML prototype, UI mockups, logo |
