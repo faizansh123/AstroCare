@@ -159,8 +159,7 @@ function AssessmentDetail({ ctx, past }: { ctx: Ctx; past: boolean }) {
 
       <StatusBanner status={a.status}>
         <p className="mini mt-2">
-          Assessment at <time dateTime={a.createdAt}>{new Date(a.createdAt).toLocaleString()}</time> · {ago(a.createdAt, now)} · rules {a.rulesVersion} ·
-          vitals {a.dataAgeHours === null ? "time unknown" : `${a.dataAgeHours} h old`} at run time
+          Assessment at <time dateTime={a.createdAt}>{new Date(a.createdAt).toLocaleString()}</time> · {ago(a.createdAt, now)}
         </p>
         {/* Always visible (D6): symptoms and the escalation reminder, whatever the colour. */}
         <div className="mt-5 grid gap-4 border-t border-white/10 pt-4 md:grid-cols-2">
