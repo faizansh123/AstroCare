@@ -37,7 +37,9 @@ npm run dev     # http://localhost:5173
 npm test        # T01-T04, T06, T07 on the rules engine
 ```
 
-Current state: single-page start form, then the local rules engine, then the results view, then the AI explanation panel.
+Current state: Dashboard (indicator cards with sparklines, latest status, scenario picker, body map), Daily check form (body-map symptom picker), local rules engine, Results (status, rules fired, body map, baseline-band comparison, trend context, AI panel) and Trends (Recharts per indicator, illustrative threshold band, gaps not joined, data table). The trend history is a fictional simulated series (`src/data/history.json`) plus checks saved in localStorage.
+
+Visual system: neutral graphite dark theme with one blue accent, Geist Sans (Geist Mono only for rule IDs), flat cards with hairline borders. Tokens in `tailwind.config.js` (`bg`, `surface`, `edge`, `fg`, `accent`), component classes (`card`, `btn-*`, `tag`, `eyebrow`, `num`) in `src/index.css`. Fonts are bundled through @fontsource, so they work offline. Emerald, amber, red and zinc are kept for status only and always come with an icon and a text label.
 
 ### Turning on the Gemini explanation
 

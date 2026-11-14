@@ -147,6 +147,8 @@ Nav: Dashboard | Self-Assessment | Results | Guidance | Trends | Mission Log | A
 - **Mission Log** (P1): add and list events. They appear next to trends and in the report as "Logged context. Does not lower any flag."
 - **About/Sources** (FR-14): `sources.json`, rules version, which facts are sourced and which are assumptions.
 
+**Built so far (UI pass, 2026-11-14):** Dashboard, Self-Assessment (still one page, stepper later), Results and Trends, plus the **body map** (FR-12) pulled forward from P2 at the team's request. The body map groups the existing inputs and symptom types by area (head, chest, whole body, arms and legs) and is used to pick symptoms on the form. On Dashboard and Results it highlights only regions with rules that already fired in the engine, using a pattern, a marker icon and a text label as well as colour. It never infers or locates anything. The region grouping is a navigation aid and still needs Nabeeha's clinical review. Guidance, Mission Log and About/Sources are not built yet.
+
 Accessibility (NFR-06): native form controls, visible focus rings, `aria-live` on the status, contrast checked, large targets, and no animation in RED.
 
 ## 9. Report (FR-10, file 07 §7)
