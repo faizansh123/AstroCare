@@ -1,0 +1,50 @@
+{
+  "label": "Published research. Group means from the cited studies, NOT the simulated astronaut and NOT an individual baseline (file 15 §3).",
+  "verification": "Numbers copied from the clickable prototype. Not yet verified against the original tables (D20, file 11). Verify before the judged presentation.",
+  "studies": [
+    {
+      "id": "norsk-2015",
+      "citation": "Norsk P, et al. (2015). Fluid shifts, vasodilatation and ambulatory blood pressure reduction during long-duration spaceflight.",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4324706/",
+      "cohort": "8 astronauts",
+      "timepoints": "Preflight (Earth) vs in-flight (ISS)",
+      "origin": "Published group means",
+      "verified": false,
+      "values": [
+        { "label": "Systolic BP", "earth": 129, "space": 121, "unit": "mmHg" },
+        { "label": "Diastolic BP", "earth": 85, "space": 76, "unit": "mmHg" },
+        { "label": "Heart rate", "earth": 64, "space": 63, "unit": "bpm" }
+      ]
+    },
+    {
+      "id": "jacc-2023",
+      "citation": "Cardiac Effects of Long-Duration Space Flight (2023). Journal of the American College of Cardiology.",
+      "url": "https://www.jacc.org/doi/10.1016/j.jacc.2023.05.058",
+      "cohort": "See original paper",
+      "timepoints": "See original paper",
+      "origin": "Published study (citation only, no values shown)",
+      "verified": false,
+      "values": []
+    },
+    {
+      "id": "nasa-hrp-hazards",
+      "citation": "NASA Human Research Program. Five Hazards of Human Spaceflight.",
+      "url": "https://www.nasa.gov/hrp/hazards/",
+      "cohort": "Not applicable",
+      "timepoints": "Not applicable",
+      "origin": "NASA educational overview",
+      "verified": false,
+      "values": []
+    },
+    {
+      "id": "nasa-osdr",
+      "citation": "NASA Open Science Data Repository (OSDR).",
+      "url": "https://science.nasa.gov/biological-physical/data/osdr/",
+      "cohort": "Dataset specific",
+      "timepoints": "Dataset specific",
+      "origin": "Research data repository",
+      "verified": false,
+      "values": []
+    }
+  ]
+}

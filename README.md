@@ -2,7 +2,7 @@
 
 Astronaut Health Monitoring and Decision-Support prototype. Team: Nabeeha Tabassum (PM, Clinical and Health Lead), Bruno Gomes Silva (frontend, dashboard), Subomi Otusanya (data, rules).
 
-**Status (14 November 2026): plan v2. Documentation only, no application code yet.**
+**Status (14 November 2026): plan v2, React build in progress.** The app in `src/` implements the master spec (`07`): 11 screens, local rules engine (`src/data/rules.json`), Gemini explanation behind the proxy (`server/explain.ts`) with the offline template fallback. Run `npm run dev`, test with `npm test`.
 
 ## Summary
 

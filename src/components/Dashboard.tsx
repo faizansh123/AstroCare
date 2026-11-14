@@ -1,152 +1,119 @@
-// Dashboard (FR-07, file 13 §8): fictional profile, mission day, environment, indicator cards with baseline delta,
-// latest status (colour + icon + text), "Start check", and the scenario picker. Values shown here that were not run
-// through the rules engine are labelled "not evaluated" and carry no flag.
-import { useState } from "react";
-import scenarios from "../data/scenarios.json";
-import type { AssessmentResult, Baseline, HealthRecord } from "../types/health";
-import { METRICS, type HistoryPoint } from "../lib/history";
-import { BODY_MAP_NOTE, BodyMap, RegionList, type RegionId } from "./BodyMap";
+// F01 Mission dashboard (file 07 §4): overall status, indicator cards with baseline and delta, survey completion,
+// SpaceLab and environment snapshots, latest log, last-sync / data-age badge. Layout follows the mockup (file 14 §5).
+import mission from "../data/mission.json";
+import { SCENARIOS } from "../data/scenarios";
+import { moodBand } from "../data/catalog";
+import { signed, signedPct } from "../lib/deltas";
+import { loadTrend, type TrendKey } from "../lib/store";
+import type { Ctx } from "../appTypes";
 import { Sparkline } from "./charts";
-import { STATUS_STYLE, StatusChip } from "./StatusBadge";
-import { Card, fmt, Icon, METRIC_META, SimTag } from "./ui";
+import { StatusBanner } from "./StatusBadge";
+import { Card, Icon, SimTag, ago, fmt, type IconName } from "./ui";
 
-const ENV_LABEL: Record<HealthRecord["environment"], string> = {
-  spacecraft: "Spacecraft", station: "Station", rover: "Rover", lunar_base: "Lunar base", mars_base: "Mars base",
-};
+export function Dashboard({ ctx }: { ctx: Ctx }) {
+  const { snapshot: s, baseline: b, live, now, go } = ctx;
+  const trend = loadTrend(s).slice(-7);
+  const series = (k: TrendKey) => trend.map((p) => p[k]);
+  const d = (ref: string) => live.deltas.find((x) => x.ref === ref);
 
-export function Dashboard({ baseline, history, result, record, onStart, onOpenResults, onOpenTrends }: {
-  baseline: Baseline | undefined; history: HistoryPoint[]; result: AssessmentResult | null; record: HealthRecord | null;
-  onStart: (scenarioId?: string) => void; onOpenResults: () => void; onOpenTrends: () => void;
-}) {
-  const [region, setRegion] = useState<RegionId | null>(null);
-  const day = record?.missionDay ?? (history.at(-1)?.missionDay ?? 41) + 1;
-  const env = record?.environment ?? "station";
-  const recent = history.slice(-14);
-  const st = result ? STATUS_STYLE[result.status] : null;
+  const kpis: { key: TrendKey; label: string; icon: IconName; value: string; unit: string; base: string; delta?: string }[] = [
+    { key: "hr", label: "Heart Rate", icon: "heart", value: fmt(s.vitals.hr, 0), unit: "bpm", base: `Earth ${b.vitals.hr}`, delta: d("vitals.hr") && `${signed(d("vitals.hr")!.abs, 0)} bpm` },
+    { key: "sbp", label: "Blood Pressure", icon: "gauge", value: `${fmt(s.vitals.sbp, 0)}/${fmt(s.vitals.dbp, 0)}`, unit: "mmHg", base: `Earth ${b.vitals.sbp}/${b.vitals.dbp}`,
+      delta: d("vitals.sbp") && d("vitals.dbp") && `${signed(d("vitals.sbp")!.abs, 0)} / ${signed(d("vitals.dbp")!.abs, 0)}` },
+    { key: "temp", label: "Body Temp", icon: "thermo", value: fmt(s.vitals.temp, 1), unit: "°C", base: `Earth ${b.vitals.temp}`, delta: d("vitals.temp") && `${signed(d("vitals.temp")!.abs, 1)} °C` },
+    { key: "sleep", label: "Sleep", icon: "moon", value: fmt(s.vitals.sleep, 1), unit: "h", base: `Earth ${b.vitals.sleep}`, delta: d("vitals.sleep") && `${signed(d("vitals.sleep")!.abs, 1)} h` },
+    { key: "mood", label: "Mood", icon: "smile", value: s.vitals.mood === undefined ? "—" : `${s.vitals.mood}/10`, unit: moodBand(s.vitals.mood), base: `Earth ${b.vitals.mood}/10`, delta: d("vitals.mood") && signed(d("vitals.mood")!.abs, 0) },
+  ];
+
+  const lastLog = ctx.log[ctx.log.length - 1];
+  const surveyAge = s.survey.submittedAt ? now - Date.parse(s.survey.submittedAt) : NaN;
+  const surveyDone = surveyAge >= 0 && surveyAge < 24 * 3_600_000;
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+        <Card className="flex items-center gap-4">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-card-3 ring-1 ring-edge">
+            <Icon name="user" className="h-10 w-10 text-accent-2" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-fg-3 text-sm">{mission.astronaut.role}</p>
+            <p className="text-xl font-bold text-fg">{mission.astronaut.name}</p>
+            <p className="mini">Mission: <span className="text-fg-2">{mission.mission.name}</span> · Day <span className="text-fg-2">{s.missionDay}</span></p>
+            <p className="mini">Phase: <span className="text-fg-2">{s.env.phase}</span> · {mission.mission.gravity}</p>
+            <p className="mt-1 text-[11px] text-fg-3">{mission.label}</p>
+          </div>
+        </Card>
         <div>
-          <p className="eyebrow">Mission day {day} · {ENV_LABEL[env]}</p>
-          <h1 className="mt-1 text-[28px] font-semibold tracking-tight text-fg sm:text-[32px]">AC-01 health overview</h1>
-          <p className="mt-1 max-w-xl text-fg-2">Today's readings against a personal baseline. Status comes from transparent demo rules, never from AI.</p>
-        </div>
-        <div className="flex gap-2">
-          {result && <button type="button" onClick={onOpenResults} className="btn-secondary">Last result</button>}
-          <button type="button" onClick={() => onStart()} className="btn-primary">Start daily check <Icon name="arrow-right" /></button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Latest status */}
-        <section aria-labelledby="st-h" className={`card flex flex-col justify-between gap-6 p-5 sm:p-6 lg:col-span-2 ${st ? st.tint : ""}`}>
-          <div className="flex items-start gap-4">
-            {st ? (
-              <span aria-hidden className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${st.solid}`}>
-                <Icon name={st.icon} className="h-5 w-5" strokeWidth={2.4} />
-              </span>
-            ) : (
-              <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-dashed border-edge-strong text-fg-3">
-                <Icon name="clipboard" className="h-5 w-5" />
-              </span>
-            )}
-            <div className="min-w-0">
-              <p className="eyebrow">Latest status</p>
-              <h2 id="st-h" className="text-xl font-semibold tracking-tight text-fg">
-                {result && st ? <><span className={st.text}>{st.short}</span> · {st.title}</> : "No check run today"}
-              </h2>
-              <p className="mt-1 text-sm text-fg-2">
-                {result
-                  ? `Day ${record?.missionDay} · ${result.triggeredRules.length} rule(s) fired · ${new Date(result.evaluatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                  : "There is no status until a check runs. Missing data never shows as Green."}
-              </p>
+          <StatusBanner status={live.status} compact>
+            <p className="mini mt-2">
+              {live.rulesFired.slice(0, 2).map((h) => h.text).join(" · ") || live.dataIssues[0]?.message || "No demo review rules triggered."}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="btn-primary" onClick={() => go("self-assessment")}>
+                Start daily check-in<Icon name="arrow-right" />
+              </button>
+              <button type="button" className="btn-ghost" onClick={() => go("assessment")}>Open assessment</button>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 border-t border-edge pt-4">
-            <span className="mr-1 text-sm text-fg-3">Try a fictional case</span>
-            {scenarios.map((s) => (
-              <button key={s.id} type="button" onClick={() => onStart(s.id)} className="btn-secondary !min-h-[36px] !px-3">
-                {s.label.replace(" (fictional)", "")}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Profile */}
-        <section aria-labelledby="pf-h" className="card p-5 sm:p-6">
-          <h2 id="pf-h" className="eyebrow">Crew profile</h2>
-          <dl className="mt-3 divide-y divide-edge text-sm">
-            {[
-              ["Astronaut", "AC-01 (fictional)"],
-              ["Mission day", String(day)],
-              ["Habitat", ENV_LABEL[env]],
-              ["Baseline", baseline ? "Simulated placeholder" : "Missing"],
-            ].map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between gap-4 py-2.5">
-                <dt className="text-fg-3">{k}</dt>
-                <dd className="text-right font-medium text-fg">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+          </StatusBanner>
+          <p className="mini mt-2">Live rules preview from current inputs ({live.rulesVersion}). Run the assessment to log it and get the explanation.</p>
+        </div>
       </div>
 
-      {/* Indicators: one surface, divided cells */}
-      <section aria-labelledby="ind-h">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 id="ind-h" className="text-base font-semibold tracking-tight text-fg">Indicators <span className="font-normal text-fg-3">· last 14 days</span></h2>
-          <div className="flex items-center gap-2">
-            <SimTag>Simulated history</SimTag>
-            <button type="button" onClick={onOpenTrends} className="btn-quiet !min-h-[36px]">View trends <Icon name="arrow-right" /></button>
-          </div>
+      <section aria-labelledby="kpi-h">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 id="kpi-h" className="text-lg font-semibold">Key Health Indicators</h2>
+          <span className="flex items-center gap-2 mini"><SimTag />Measured {ago(s.vitals.measuredAt, now)} · baseline from {b.period.toLowerCase()}</span>
         </div>
-        <div className="grid gap-px overflow-hidden rounded-xl border border-edge bg-edge sm:grid-cols-2 xl:grid-cols-3">
-          {METRICS.map((k) => {
-            const m = METRIC_META[k];
-            const dev = result?.deviations.find((d) => d.field === k);
-            const lastPoint = [...history].reverse().find((p) => p[k] !== undefined);
-            const value = dev?.current ?? lastPoint?.[k];
-            const base = baseline?.[k];
-            const delta = value !== undefined && base !== undefined ? value - base : undefined;
-            return (
-              <button key={k} type="button" onClick={onOpenTrends}
-                className="group bg-surface p-5 text-left transition-colors hover:bg-surface-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-fg-2">{m.label}</span>
-                  {dev?.flagged
-                    ? <span className="tag bg-amber-400/10 text-amber-300"><Icon name="alert" className="h-3 w-3" strokeWidth={2.2} />Flagged</span>
-                    : <span className="text-xs text-fg-3">{dev ? "Evaluated" : "Not evaluated"}</span>}
-                </div>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="num text-[28px] font-semibold leading-none text-fg">{fmt(value, m.digits)}</span>
-                  <span className="text-sm text-fg-3">{m.unit}</span>
-                  <span className={`num ml-auto text-xs ${dev?.flagged ? "text-amber-300" : "text-fg-3"}`}>
-                    {delta === undefined ? "" : `${delta > 0 ? "+" : ""}${fmt(delta, m.digits)} vs ${fmt(base, m.digits)}`}
-                  </span>
-                </div>
-                {base !== undefined && <Sparkline values={recent.map((p) => p[k])} baseline={base} className="mt-4 h-9 w-full" />}
-                <p className="mt-2 text-xs text-fg-3">
-                  {dev ? `This check · day ${record?.missionDay}` : lastPoint ? `Simulated · day ${lastPoint.missionDay}` : "No reading"}
-                </p>
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          {kpis.map((k) => (
+            <button key={k.key} type="button" onClick={() => go("vitals")} className="card p-4 text-left transition-colors hover:border-accent/50">
+              <p className="flex items-center gap-2 text-sm font-semibold text-fg-2"><Icon name={k.icon} className="h-4 w-4 text-accent-2" />{k.label}</p>
+              <p className="num mt-2 text-2xl font-bold text-fg">{k.value} <span className="text-sm font-medium text-fg-3">{k.unit}</span></p>
+              <p className="mini num">{k.base}{k.delta ? ` · ${k.delta}` : ""}</p>
+              <Sparkline values={series(k.key)} baseline={(b.vitals as Record<string, number>)[k.key]} className="mt-2 h-9 w-full" />
+            </button>
+          ))}
         </div>
       </section>
 
-      {/* Body map */}
-      <Card title="Body map" kicker="Latest check by body area"
-        aside={result ? <StatusChip status={result.status} /> : <span className="tag bg-surface-3 text-fg-3">No check yet</span>}>
-        <div className="grid items-center gap-8 md:grid-cols-[200px_1fr]">
-          <div className="mx-auto h-[300px] w-full max-w-[160px] md:h-[340px] md:max-w-[180px]">
-            <BodyMap result={result} selected={region} onSelect={setRegion} />
-          </div>
-          <div>
-            <RegionList result={result} selected={region} onSelect={setRegion} />
-            <p className="mt-3 flex items-start gap-2 text-xs text-fg-3"><Icon name="info" className="mt-0.5 h-3.5 w-3.5 shrink-0" />{BODY_MAP_NOTE}</p>
-          </div>
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <Card title="Daily check-in" icon="clipboard">
+          <p className="flex items-center gap-2 text-sm">
+            {surveyDone
+              ? <><Icon name="check" className="h-4 w-4 text-ok-fg" /><span className="text-fg">Completed {ago(s.survey.submittedAt, now)}</span></>
+              : <><Icon name="alert" className="h-4 w-4 text-warn-fg" /><span className="text-fg">Not completed today</span></>}
+          </p>
+          <p className="mini mt-1">Fatigue {s.survey.fatigue ?? "—"}/10 · Symptoms: {live.symptoms.join(", ") || (s.survey.symptomsAnswer === "none" ? "none" : "not answered")}</p>
+          <button type="button" className="btn-secondary mt-3 w-full" onClick={() => go("self-assessment")}>Open self-assessment</button>
+        </Card>
+        <Card title="SpaceLab snapshot" icon="flask" aside={<SimTag />}>
+          <p className="mini num">Hemoglobin {b.labs.hemoglobin} → {fmt(s.labs.hemoglobin, 0)} g/L ({signedPct(d("labs.hemoglobin")?.pct ?? null)})</p>
+          <p className="mini num">WBC {b.labs.wbc} → {fmt(s.labs.wbc, 1)} ×10⁹/L</p>
+          <p className="mini">Specimen {ago(s.labs.collectedAt, now)}</p>
+          <button type="button" className="btn-secondary mt-3 w-full" onClick={() => go("spacelab")}>View biomarkers</button>
+        </Card>
+        <Card title="Mission environment" icon="orbit" aside={<SimTag />}>
+          <p className="mini num">CO₂ {fmt(s.env.co2Pct, 2)}% · Cabin {fmt(s.env.cabinTempC, 0)} °C · RH {fmt(s.env.humidityPct, 0)}%</p>
+          <p className="mini">{s.env.lightCycle} · {live.context.length ? "Context note added" : "No context notes"}</p>
+          <p className="mini">Context only. Never changes the status.</p>
+          <button type="button" className="btn-secondary mt-3 w-full" onClick={() => go("environment")}>Inspect environment</button>
+        </Card>
+        <Card title="Latest mission log" icon="list">
+          {lastLog
+            ? <><p className="mini">{ago(lastLog.createdAt, now)} · {lastLog.type}</p><p className="mt-1 line-clamp-3 text-sm text-fg-2">{lastLog.text}</p></>
+            : <p className="mini">No events yet. Save a check-in, run an assessment, or add a note.</p>}
+          <button type="button" className="btn-secondary mt-3 w-full" onClick={() => go("log")}>Open mission log</button>
+        </Card>
+      </div>
+
+      <Card title="Demo scenarios" icon="sparkles" aside={<span className="mini">Fictional inputs. All go through the same rules.</span>}>
+        <div className="flex flex-wrap gap-2">
+          {SCENARIOS.map((sc) => (
+            <button key={sc.id} type="button" className="btn-ghost" onClick={() => ctx.loadScenario(sc.id)} title={sc.description}>
+              {sc.label}
+            </button>
+          ))}
         </div>
       </Card>
     </div>

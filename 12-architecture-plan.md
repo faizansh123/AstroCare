@@ -1,6 +1,6 @@
 # Architecture Plan: Form, Rules, Gemini, Display
 
-Status: plan only, no application code yet. Updated for the v2 plan (files 07, 11, 14, 15).
+Status: implemented in `src/` and `server/` (14 Nov 2026). Updated for the v2 plan (files 07, 11, 14, 15).
 
 ## 1. The flow
 
@@ -49,7 +49,10 @@ The features doc requires deterministic rules for status and an explanation laye
 5. Missing or uncertain information (list)
 6. Recommended verification (list)
 7. Escalation pathway (text, "follow approved crew medical procedures")
-8. For every list item: `refs[]`
+8. Space hazards (exactly 3: radiation exposure, cabin air, bone and muscle health; D24)
+9. For every list item: `refs[]`
+
+**Build note (tested 14 Nov 2026, `gemini-3.5-flash-lite`):** Gemini returns 400 INVALID_ARGUMENT when the response schema contains `maxItems`. The schema sent to Gemini omits it; list limits are enforced by the zod schema in the response check instead. The response check also rejects any number not found in the inputs, deltas or rule thresholds.
 
 Use Gemini's structured output (JSON with a response schema). Confirm the current model name, parameter names, and free-tier limits in Google's docs at build time. I have not verified them. Keep the system prompt fixed and versioned.
 

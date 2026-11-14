@@ -1,22 +1,37 @@
 {
-  "engineVersion": "demo-rules-0.1.0",
-  "label": "ILLUSTRATIVE demo thresholds. Not clinically validated. Pending clinical review (file 13 §6).",
-  "requiredFields": ["heartRateBpm", "systolicMmHg", "diastolicMmHg", "temperatureC", "sleepHours", "fatigueScore"],
+  "rulesVersion": "demo-rules-2.0.0",
+  "label": "Illustrative demonstration rules. Not validated flight medicine. Configurable in src/data/rules.json (file 07 §7, D5).",
+  "staleLimitHours": 24,
+  "staleLimitNote": "Placeholder stale-data limit (file 11, still open 6).",
+  "required": ["vitals.hr", "vitals.sbp", "vitals.dbp", "vitals.temp", "vitals.sleep", "vitals.mood", "survey.fatigue", "survey.symptoms"],
   "plausibility": {
-    "heartRateBpm": [25, 250],
-    "systolicMmHg": [60, 260],
-    "diastolicMmHg": [30, 160],
-    "temperatureC": [30, 44],
-    "sleepHours": [0, 24],
-    "fatigueScore": [0, 10]
+    "vitals.hr": [25, 250],
+    "vitals.sbp": [60, 260],
+    "vitals.dbp": [30, 160],
+    "vitals.temp": [30, 44],
+    "vitals.sleep": [0, 24],
+    "vitals.mood": [1, 10],
+    "survey.fatigue": [0, 10],
+    "labs.hemoglobin": [50, 250],
+    "labs.wbc": [0.5, 50],
+    "labs.glucose": [1, 35],
+    "labs.calcium": [1, 4],
+    "env.co2Pct": [0, 5],
+    "env.cabinTempC": [10, 40],
+    "env.humidityPct": [0, 100],
+    "env.radiationMGy": [0, 1000]
   },
-  "redFlagSymptoms": ["chest_pain", "shortness_of_breath", "fainting"],
+  "plausibilityNote": "Input sanity ranges that catch typos. They are not clinical limits.",
+  "trainingTriggers": ["severe_breathing_difficulty"],
   "yellow": {
-    "heartRateBpm": { "up": 15 },
-    "systolicMmHg": { "abs": 20 },
-    "temperatureC": { "up": 1.0 },
-    "sleepHours": { "down": 1.5 },
-    "fatigueScore": { "up": 3 }
+    "hrRiseBpm": 20,
+    "sleepBelowHours": 6,
+    "fatigueAtLeast": 7,
+    "moodAtMost": 4,
+    "symptomCountAtLeast": 2,
+    "hemoglobinPctAtLeast": 10
   },
-  "redConcurrentDeviations": 3
+  "context": {
+    "co2PctAtLeast": 0.5
+  }
 }

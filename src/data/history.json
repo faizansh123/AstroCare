@@ -1,19 +1,9 @@
 {
-  "label": "Simulated history (fictional). Not real crew data. Gaps are missed readings and are not joined.",
-  "astronautId": "AC-01",
+  "label": "Simulated history (fictional demo values from the clickable prototype, file 14). Not real crew data.",
   "points": [
-    { "missionDay": 28, "heartRateBpm": 61, "systolicMmHg": 117, "diastolicMmHg": 75, "temperatureC": 36.6, "sleepHours": 7.3, "fatigueScore": 2 },
-    { "missionDay": 29, "heartRateBpm": 63, "systolicMmHg": 119, "diastolicMmHg": 77, "temperatureC": 36.7, "sleepHours": 6.9, "fatigueScore": 2 },
-    { "missionDay": 30, "heartRateBpm": 60, "systolicMmHg": 116, "diastolicMmHg": 74, "temperatureC": 36.6, "sleepHours": 7.4, "fatigueScore": 1 },
-    { "missionDay": 31, "heartRateBpm": 64, "systolicMmHg": 121, "diastolicMmHg": 78, "temperatureC": 36.8, "sleepHours": 6.6, "fatigueScore": 3 },
-    { "missionDay": 32, "heartRateBpm": 62, "systolicMmHg": 118, "diastolicMmHg": 76, "temperatureC": 36.7, "sleepHours": 7.1, "fatigueScore": 2 },
-    { "missionDay": 33, "heartRateBpm": 65, "systolicMmHg": 120, "diastolicMmHg": 77, "temperatureC": 36.9, "sleepHours": 6.4, "fatigueScore": 3 },
-    { "missionDay": 34, "heartRateBpm": 63, "systolicMmHg": 119, "diastolicMmHg": 76, "temperatureC": 36.7, "sleepHours": 7.0, "fatigueScore": 2 },
-    { "missionDay": 36, "heartRateBpm": 61, "systolicMmHg": 117, "diastolicMmHg": 75, "temperatureC": 36.6, "sleepHours": 7.5, "fatigueScore": 1 },
-    { "missionDay": 37, "heartRateBpm": 62, "systolicMmHg": 118, "diastolicMmHg": 76, "temperatureC": 36.7, "sleepHours": 7.2, "fatigueScore": 2 },
-    { "missionDay": 38, "heartRateBpm": 64, "systolicMmHg": 120, "diastolicMmHg": 78, "temperatureC": 36.8, "fatigueScore": 2 },
-    { "missionDay": 39, "heartRateBpm": 63, "systolicMmHg": 119, "diastolicMmHg": 77, "temperatureC": 36.7, "sleepHours": 6.8, "fatigueScore": 2 },
-    { "missionDay": 40, "heartRateBpm": 62, "systolicMmHg": 118, "diastolicMmHg": 76, "temperatureC": 36.7, "sleepHours": 7.1, "fatigueScore": 2 },
-    { "missionDay": 41, "heartRateBpm": 63, "systolicMmHg": 119, "diastolicMmHg": 76, "temperatureC": 36.7, "sleepHours": 6.9, "fatigueScore": 2 }
+    { "missionDay": 138, "hr": 76, "sbp": 120, "temp": 36.7, "sleep": 7.5, "mood": 8 },
+    { "missionDay": 139, "hr": 79, "sbp": 119, "temp": 36.7, "sleep": 7, "mood": 7 },
+    { "missionDay": 140, "hr": 83, "sbp": 117, "temp": 36.8, "sleep": 6.5, "mood": 7 },
+    { "missionDay": 141, "hr": 85, "sbp": 118, "temp": 36.8, "sleep": 6, "mood": 6 }
   ]
 }

@@ -1,10 +1,10 @@
-// Framework-agnostic core of the Gemini proxy (file 13 §7). Used by api/explain.ts (Vercel)
+// Framework-agnostic core of the Gemini proxy (file 12 §1 step 4, file 07 §8). Used by api/explain.ts (Vercel)
 // and by the Vite dev middleware, so local dev and deploy run the same code.
 // Server-side only: holds GEMINI_API_KEY. Never import this from client code (NFR-09).
 // Relative imports use .js so the compiled Node ESM function resolves them on Vercel.
 import { GoogleGenAI } from "@google/genai";
 import { ExplainRequestSchema, type AiExplanation } from "../src/types/health.js";
-import { AI_RESPONSE_JSON_SCHEMA, PROMPT_VERSION, SYSTEM_PROMPT, buildUserPrompt } from "../src/prompts/explain.v1.js";
+import { AI_RESPONSE_JSON_SCHEMA, PROMPT_VERSION, SYSTEM_PROMPT, buildUserPrompt } from "../src/prompts/explain.v3.js";
 import { guardAiReply } from "../src/lib/aiGuard.js";
 
 // D4 (file 13 §2): Flash-tier model from env. Confirm the current name in Google's docs.
@@ -33,7 +33,7 @@ export function geminiGenerate(apiKey: string): GenerateFn {
         responseMimeType: "application/json",
         responseJsonSchema: AI_RESPONSE_JSON_SCHEMA,
         temperature: 0.2, // low for consistency (file 12 §11)
-        maxOutputTokens: 1500,
+        maxOutputTokens: 2500,
         abortSignal: signal,
       },
     });
@@ -87,7 +87,7 @@ export async function explain(
       if (!text) { reason = "AI returned an empty reply"; continue; }
       let json: unknown;
       try { json = JSON.parse(text); } catch { reason = "AI reply was not valid JSON"; continue; }
-      const guarded = guardAiReply(json, req.data.result.status);
+      const guarded = guardAiReply(json, req.data.assessment, req.data.snapshot);
       if (guarded.ok) return { httpStatus: 200, body: { ...base, model, ai: guarded.ai } };
       reason = guarded.reason;
     } catch (err) {

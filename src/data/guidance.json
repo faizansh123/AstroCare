@@ -1,0 +1,56 @@
+{
+  "version": "guidance-0.2",
+  "reviewStatus": "Draft. Pending clinical review (Nabeeha, file 07 §13).",
+  "label": "Research-informed educational topics, not personalised treatment instructions. Crew-specific medical procedures and flight rules take precedence.",
+  "articles": [
+    {
+      "id": "cardio-adaptation",
+      "section": "health-prevention",
+      "title": "Cardiovascular adaptation",
+      "summary": "Altered gravity is associated with fluid shifts and cardiovascular changes. Compare personal trends with the preflight baseline, confirm measurement conditions, and review with crew medical staff as appropriate.",
+      "source": { "label": "Norsk et al. 2015 (PMC4324706)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4324706/" }
+    },
+    {
+      "id": "sleep-mood",
+      "section": "health-prevention",
+      "title": "Sleep, fatigue and mood",
+      "summary": "Record sleep, fatigue, mood and symptom patterns alongside the light cycle and workload. Persistent concerns warrant review under crew protocols.",
+      "source": { "label": "NASA Human Research Program: Five Hazards", "url": "https://www.nasa.gov/hrp/hazards/" }
+    },
+    {
+      "id": "spaceflight-hazards",
+      "section": "spaceflight-hazards",
+      "title": "Spaceflight health hazards",
+      "summary": "NASA identifies altered gravity, radiation, isolation and confinement, distance from Earth, and hostile or closed environments as major human-spaceflight hazards.",
+      "source": { "label": "NASA Human Research Program: Five Hazards", "url": "https://www.nasa.gov/hrp/hazards/" }
+    },
+    {
+      "id": "environment-context",
+      "section": "spaceflight-hazards",
+      "title": "How environment enters the assessment",
+      "summary": "Cabin air quality, temperature, humidity, lighting, radiation exposure and altered gravity can provide context. AstroCare shows these next to symptoms and vital-sign trends but does not infer individual causation, and environment never changes the status.",
+      "source": { "label": "NASA Human Research Program: Five Hazards", "url": "https://www.nasa.gov/hrp/hazards/" }
+    },
+    {
+      "id": "lab-immune",
+      "section": "spaceflight-hazards",
+      "title": "Laboratory and immune research",
+      "summary": "NASA OSDR provides research datasets, but dataset-specific validation is required before treating any file as routine astronaut laboratory data. A change in a single lab value is not a diagnosis.",
+      "source": { "label": "NASA Open Science Data Repository", "url": "https://science.nasa.gov/biological-physical/data/osdr/" }
+    },
+    {
+      "id": "measurement-guide",
+      "section": "measurement-guide",
+      "title": "Taking comparable readings",
+      "summary": "Repeat a reading at the same time of day, in the same posture, with the same device. Use the same temperature site as the baseline. Compare blood pressure components separately and never compare lab values in different units.",
+      "source": { "label": "AstroCare data dictionary (file 15 §3)", "url": "" }
+    },
+    {
+      "id": "escalation",
+      "section": "measurement-guide",
+      "title": "When to escalate",
+      "summary": "If you feel unwell, a symptom is new or getting worse, or you are concerned, follow approved crew medical procedures and contact the crew medical officer, whatever colour AstroCare shows.",
+      "source": { "label": "AstroCare safety rules (file 07 §7)", "url": "" }
+    }
+  ]
+}
