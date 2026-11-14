@@ -1,62 +1,64 @@
-# Reconciliation: SRS vs Earlier Docs vs Innovation Ideas
+# Reconciliation v2: One Plan From All Sources
 
-The new SRS (file 10) is more conservative and more build-ready than the lab docs and my first spec. This file lists where they disagree, what I recommend, and how the innovation ideas fit without breaking the SRS safety rules. **Where files conflict, treat file 10 (SRS) as the authority for the build**, then this file, then 07 and 09.
+The project now has several sources that partly disagree. This file settles each disagreement so the build follows **one plan**. Where a row says "Decision", the master spec (`07-prototype-spec.md`) already reflects it.
 
-## 1. Conflicts and recommended decisions
+## Source of truth order
 
-| # | Topic | Charter / labs | SRS (file 10) | Recommendation |
-|---|---|---|---|---|
-| 1 | Status states | 3 states: Green, Yellow, Red | 4 states: adds **Insufficient Data** | Use 4 states. It is the safest answer to "false reassurance" and a good demo moment (T04) |
-| 2 | Green meaning | "Stable" | "No flags under demo rules", never "medically cleared" | Use the SRS wording on screen. Keep "Stable" only as a short label |
-| 3 | Indicators | Resting HR, HRV, SpO2, sleep/recovery, exercise, fatigue | HR, BP, temperature, sleep, fatigue, mood, symptoms, optional glucose | Build the SRS set for the MVP (matches the NASA brief wording and what an astronaut can actually enter). Keep SpO2 and HRV as **optional simulated fields** if time allows, so the charter's "5+ indicators" and wearable story still hold. SRS alone already gives 6+ |
-| 4 | Data source | Simulated, wearable-style | Manual entry plus fictional scenarios, no real sensors | Manual plus scenarios for MVP. My "upload your own CSV" idea becomes a P2 stretch, tagged `source: "manual"` |
-| 5 | Red trigger | Defined deterioration conditions | Predefined urgent case or protocol trigger only | Red = seeded urgent scenario or red-flag symptom. My earlier "SpO2 below 92" and z-score cutoffs stay only as **configurable illustrative rules in JSON**, labelled demo rules |
-| 6 | Symptoms vs vitals | Symptoms feed assessment | Symptom override: escalation never suppressed when vitals look normal (T07) | Adopt T07 exactly |
-| 7 | Offline | "Tested offline version" | PWA caching must be implemented and tested, or called future work | Decide now (open question in SRS). If no one owns it by end of Day 1, call it future work and demo from a local build |
-| 8 | Timeline | 2-week iteration (Lab 4) | 2-day hackathon plan (Day 1 / Day 2) | Both are fine. Lab docs are the course framing, SRS Day 1 / Day 2 is the build plan |
-| 9 | Roles | Nabeeha PM and clinical, Bruno and Subomi team leads | Bruno frontend, Subomi data and rules, Nabeeha clinical and presentation | Matches Lab 5 responsibilities. Confirm as a team |
-| 10 | Tech | "Browser-based" | React, Vite, Tailwind, Recharts, localStorage/IndexedDB, Vercel | Use SRS stack. All three of you already work in React |
+1. **Feature scope and behavior:** `15-features-requirements-user-flows.md` (features F01-F12), the clickable prototype, and the visual mockups (`14-ui-design-and-prototype-reference.md`)
+2. **Engineering, safety, and test requirements:** `10-requirements-and-technical-design.md` (SRS), wherever it does not contradict source 1
+3. **Technology and AI flow:** `12-architecture-plan.md` (React, Tailwind, TypeScript, Gemini)
+4. **Project history:** charter, stakeholder, iteration, stand-up, and risk docs (updated in this pass where the plan changed)
+5. **Stretch ideas:** `09-gaps-and-innovation.md`
 
-## 2. Corrections to my earlier files (09 and 07)
+## Decisions
 
-Two things I said in the innovation file are **unsafe under the SRS** and are corrected here:
+| # | Topic | Sources say | Decision |
+|---|---|---|---|
+| D1 | Baseline | Features doc and prototype: **Earth (preflight) baseline**, absolute and % change. SRS and my earlier spec: personal baseline with standard deviations | Use the **Earth baseline** with absolute and % deltas. Drop z-scores and SD. "Earth vs space" is the core framing |
+| D2 | Indicators | Charter v1: resting HR, HRV, SpO2, sleep, exercise, fatigue. SRS: HR, BP, temp, sleep, fatigue, mood, optional glucose. Features doc: vitals + labs + environment | **Vitals:** HR, SBP, DBP, body temperature, sleep, mood. **Survey:** fatigue, symptoms, notes. **Labs:** hemoglobin, WBC, glucose, calcium. **Environment:** CO2, cabin temperature, humidity, light cycle, mission phase, radiation only if available. **Dropped:** HRV, SpO2, exercise performance |
+| D3 | Status states | Charter: 3. SRS and features doc: 4 | **4 states:** GREEN, YELLOW, RED, INSUFFICIENT DATA |
+| D4 | What RED means | Features doc: only a deliberately triggered **training scenario**. SRS: urgent demo case or protocol trigger. My earlier spec: absolute vital thresholds | RED = **training scenario trigger only**. Default trigger: severe breathing difficulty. The trigger list is configurable. No absolute-vital RED rules |
+| D5 | YELLOW rules | Prototype: HR +20 bpm or more, sleep under 6 h, fatigue 7 or more, mood 4 or less, 2 or more symptoms, hemoglobin change of 10% or more | Use exactly these, in a configurable rules file, labelled illustrative |
+| D6 | Symptoms vs numbers | SRS: symptoms are never suppressed by normal vitals | Keep. Symptoms always display, "seek help regardless of color" is always shown, and a selected training trigger forces RED even if every number is normal |
+| D7 | Environment | Features doc: context only, never assumed causal. Prototype: CO2 at or above 0.5% adds a context sentence | Context text only. Environment and log events **never change the status** and never state a cause |
+| D8 | AI | Features doc: rules decide, "AI-style explanation" explains. Team flow: form to **Gemini** to display | Rules decide status. **Gemini writes the explanation** under the F06 output contract. The prototype's rule-grounded template text is the **fallback** when Gemini is unavailable or invalid |
+| D9 | Mood input | Prototype: 1-10 slider. Mockup: 5 labelled buttons. SRS: categorical | Store **1-10** (needed for baseline deltas and "same scale and wording"). UI: slider with labelled anchors (very low to very good) |
+| D10 | Fatigue input | Prototype: 0-10. Mockup: None / Mild / Moderate / High | Store **0-10**. Show band label beside it: 0-1 None, 2-4 Mild, 5-6 Moderate, 7-10 High. The YELLOW rule fires at 7 (High) |
+| D11 | Sleep input | Prototype: hours. Mockup: hour bins | Store **hours** (decimal). Quick-pick chips may fill the field, but the number is what is saved |
+| D12 | Navigation | Prototype: 10 screens. Mockup: 6 items | **11 items in 4 groups**, see the master spec section 6. Mockup visual design, prototype behavior |
+| D13 | Self-assessment steps | Mockup: Symptoms, Measurements, Lifestyle, Review | Use the 4-step stepper: (1) Symptoms and feelings, (2) Measurements, (3) Lifestyle and environment, (4) Review |
+| D14 | Identity and mission | Prototype: ISS, Day 124, astronaut A-01. Mockup: Artemis III, lunar orbit, Day 142, Commander Alex Morgan | One fictional crew member and **fictional mission** on every screen. Suggested: "Cdr. Alex Morgan (fictional), Lunar Orbit mission (fictional), Day 142". Avoid a real mission name next to invented data |
+| D15 | Baseline display | Prototype: single values. Mockup: ranges | Single baseline value is canonical. A range label is a display choice only |
+| D16 | Persistence | SRS: localStorage or IndexedDB. Features doc: localStorage only plus JSON export/import | **localStorage + JSON export/import** |
+| D17 | Offline | SRS: tested PWA or call it future work. Features doc: offline-capable architecture desired, visible last-sync and stale-data indicators | Everything except the Gemini explanation works offline. Build last-sync and stale-data indicators. PWA caching is a stretch goal and not claimed unless tested |
+| D18 | Stack | SRS: React, Vite, Tailwind, Recharts, Vercel. Team: React, Tailwind, TypeScript, Gemini | **React + Vite + Tailwind + TypeScript**, Recharts for charts, Vercel (static app plus one serverless function that holds the Gemini key) |
+| D19 | Schedule | Lab 4: 2-week iteration. SRS: Day 1 and Day 2. Features doc: Sprints 1-4 | Use **Sprints 1-4 as the build order**. Team maps them onto the real hackathon time available |
+| D20 | Research panel | Prototype lists Norsk 2015 means. Features doc: verify before judging | Keep a clearly separate panel. Numbers are **unverified** until someone checks the original tables |
+| D21 | My earlier innovation ideas | Adaptation-aware baseline, hazard context, delay-aware escalation | **Adaptation baseline:** dropped as an engine, its job is covered by the Earth-vs-space comparison plus the published reference panel. **Hazard context:** covered by F07 environment plus mission log events, context only. **Delay-aware escalation:** kept only as a P2 stretch (not in the new docs) |
+| D22 | Required fields for a valid assessment | SRS: missing field gives Insufficient Data. Not specified which | **Required:** HR, SBP, DBP, temperature, sleep, mood, fatigue, and a symptom answer (none or listed). **Optional:** labs, environment. Missing or invalid required field gives INSUFFICIENT DATA |
+| D23 | Labs and units | Features doc: do not compare incompatible units | Block or convert with a visible conversion. Glucose in mmol/L is canonical, mg/dL converts at x18 |
 
-1. **"Hazard context can soften alerts / fewer false alarms."** Wrong direction. The SRS flags high consequence of false reassurance. **Context may annotate or raise concern, never lower a status.** Its benefit is a better explanation, not fewer alerts.
-2. **"Adaptation-aware baseline reduces false alerts."** Same issue. Corrected design: show **two comparisons side by side**, personal baseline and "typical early-adaptation range for this mission day". Status is driven by the **more conservative** of the two. The adaptation range only changes the *message* inside Yellow, for example "consistent with expected early adaptation, recheck in 24 h" versus "unexpected for this mission day, notify crew medical officer".
+## Still open (team to decide)
 
-Also from the SRS: switching environment must **not silently change thresholds** (FR-01), and hazards must **not be inferred from vitals** (radiation, cabin air, bone loss). So context events (radiation shelter, CO2 alarm, EVA) are **entered by the user or scripted in a Mission Log**, never detected.
+1. **Rules for BP, temperature, glucose, WBC, calcium:** the prototype only displays them as deltas. Add configurable rules, or keep display-only? (Default: display-only.)
+2. **Radiation display:** features doc says "when available". Default: optional field, shown only if entered, labelled as context, not live telemetry.
+3. **Mission identity** (D14) and final navigation grouping (D12).
+4. **Who verifies the Norsk 2015 numbers** against the original paper (suggest Nabeeha).
+5. **Gemini:** model, key owner, billing. Also whether Gemini gets the guidance snippets (retrieval) or just the inputs.
+6. **Stale-data threshold:** placeholder 24 hours.
+7. **Submission requirements** (video, code link, project page): not in any source yet.
 
-## 3. How the three innovation pillars fit into the SRS
+## What this changes in earlier files
 
-| Pillar | SRS hook | What to build | Priority | Safe wording |
-|---|---|---|---|---|
-| Adaptation-aware comparison | FR-04 baseline comparison; SRS section 3 "label baselines as mission and context dependent" | Second column in Results: "Typical range for mission day N (illustrative, cited)". Conservative status rule above | P1 | "Illustrative adaptation range, not validated" |
-| Hazard context (Mission Log) | Context field in HealthRecord; nav item "Mission Log"; UC-02 hazard context | `events[]` entered by user: radiation shelter, high CO2 alert, EVA, missed exercise. Shown next to the trend and in the report. Never changes status | P1 | "Logged context. Does not lower any flag" |
-| Delay-aware escalation | UC-03; SRS "distinguish onboard vs ground escalation"; "queue/export summaries" | On Red: input or select one-way comm delay, show "earliest ground reply", list onboard steps from approved protocol text, generate handoff packet (FR-10) | P1 | "Follow approved mission procedures. Illustrative delay calculator" |
-
-If time is short, build **only the third**. It is the cheapest (extends FR-10 and UC-03) and the most visibly space-specific.
-
-## 4. How this answers your gap questions, SRS-safe
-
-- **Data:** keep SRS fictional scenarios, but build each scenario curve from a cited published trend (sleep reduction in flight, temperature response). Put the citation in the About/Sources panel (FR-14). One "validation vs public data" slide is a bonus.
-- **Space relevance:** SRS hazard table plus the three pillars above.
-- **NASA benefit:** fills SRS open question 1 (which NASA material do we cite). Suggested citations to add to FR-14:
-  - NASA Exploration Medical Capability, Clinical Decision Support System Concept of Operations (HRP-48033): https://ntrs.nasa.gov/citations/20220017856
-  - NASA HRP hazards page (already in SRS): https://www.nasa.gov/hrp/hazards/
-  - ISS National Lab Axiom-4 wearable plus edge computing demo: https://issnationallab.org/?p=48894
-  - Claim to make: "AstroCare is a small prototype of the prevention and early-detection layer of NASA's planned crew clinical decision support."
-- **Difference:** transparent rules plus Insufficient Data plus symptom override plus delay-aware handoff, all offline. See table in file 09 (ignore the "fewer false alarms" row, replaced by "better explained alerts").
-
-## 5. Recommended build scope
-
-1. **P0 (SRS):** profile, measurements, symptoms, baseline deltas, 4-state engine with rules shown, guidance, 3 scenarios, sources panel
-2. **P1 in this order:** (a) report export and delay-aware escalation, (b) Mission Log context, (c) trends chart, (d) dual baseline column, (e) PWA offline
-3. **P2:** body map, reminders, CSV import, environment switch
-
-## 6. Decisions the team must make today
-
-1. MVP indicator set: SRS set only, or SRS plus simulated SpO2 and HRV?
-2. Offline: tested PWA or future work?
-3. Which one innovation pillar is guaranteed (my pick: delay-aware escalation)?
-4. Who owns guidance wording review and source for each guidance entry (Nabeeha)?
-5. Submission requirements (video length, code link, project page): not in any doc yet, check the event page
+| File | Change made |
+|---|---|
+| 02 charter | v2 amendment block, new indicators, scope, deliverables, success criteria |
+| 03 stakeholders | Added research/operations analyst and AI service provider, fixed grid mismatch |
+| 04 iteration plan | Added v2 backlog from F01-F12 |
+| 05 stand-ups | Historical note only |
+| 06 risk register | Added risks for Gemini, causality, invented labs, plan drift |
+| 07 spec | Fully rewritten as master spec v2 |
+| 08 demo | Rewritten around Flows A, B, C |
+| 09 innovation | Status banner added, ideas mapped to decisions |
+| 10 SRS | Banner added, kept as engineering and safety source |
+| 12 architecture | Updated pipeline and AI contract |

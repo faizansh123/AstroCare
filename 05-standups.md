@@ -1,5 +1,7 @@
 # Lab 5: Daily Stand-Ups and Team Reflection
 
+> **Historical record.** These stand-ups covered the original Lab 4 iteration (dashboard, baseline comparison, status). The plan has since expanded to the v2 feature set (see `07-prototype-spec.md`). The working agreements at the bottom still apply to the new sprints. Suggested next stand-up topics: confirm the open decisions in `11-reconciliation.md`, assign the v2 backlog owners, and agree the shared TypeScript types first, since integration was the repeated blocker.
+
 Project: AstroCare. Iteration: 2 weeks. Meetings: 15 minutes or less, on WhatsApp Call. Attendance was marked "(confirm attendance)" in the source doc.
 
 ## Stand-up 1: Initial planning and task coordination (15 min)

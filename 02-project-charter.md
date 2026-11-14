@@ -1,5 +1,48 @@
 # Lab 2: Project Charter
 
+## v2 amendments (14 November 2026)
+
+The signed charter (22 September 2026) is kept below. The team's plan was refined after the Space Apps challenge brief, the SRS, the features doc, the clickable prototype, and the UI mockups. Where the text below disagrees with this block, **this block and `07-prototype-spec.md` win**. These amendments have not been re-signed.
+
+| Area | Charter v1 | Amendment v2 |
+|---|---|---|
+| Indicators | Resting HR, HRV, SpO2, sleep and recovery, exercise performance, self-reported fatigue | Vitals: HR, systolic and diastolic BP, body temperature, sleep, mood. Survey: fatigue, symptoms. Labs: hemoglobin, WBC, glucose, calcium. Environment: CO2, cabin temperature, humidity, light cycle, mission phase, radiation if available. HRV, SpO2, exercise dropped |
+| Baseline | Personal baseline across several indicators | **Earth (preflight) baseline** compared with simulated in-flight values, absolute and % change |
+| Status | Green, Yellow, Red | Green, Yellow, Red, **Insufficient Data**. Red is a deliberately triggered **training scenario** only |
+| Assessment output | Guided assessment and report | Rules decide the status. **Gemini** writes a grounded explanation with a built-in fallback |
+| New in scope | n/a | SpaceLab biomarkers, environment context, body map, trends, guidance library, mission log with export, NASA research provenance panel |
+| Tech | Browser-based prototype | React, Tailwind, TypeScript, Vite, Vercel serverless function for the Gemini key, localStorage |
+| Medical-event report | Auto-generated report | Replaced by the **mission log with JSON export** plus the assessment explanation. A printable event summary is a stretch item |
+| Schedule | High-level phases | Build in Sprints 1-4 (see the master spec) |
+| Success criteria | Listed below | Updated list below |
+
+### Updated deliverables (v2)
+
+| Deliverable | Description |
+|---|---|
+| Functional prototype | React/TypeScript browser app matching the clickable prototype and mockups |
+| Mission dashboard | Status, indicators with Earth baseline deltas, environment snapshot, latest log |
+| Rules engine and tests | Deterministic, configurable, with reason codes and scenario tests |
+| AI explanation | Gemini via serverless proxy, schema and reference checked, template fallback |
+| Mission log and export | Timestamped history, JSON export |
+| NASA research panel | Published studies, separately labelled and verified |
+| Demo and presentation | Scenario demo covering the daily check-in, medical review, and research flows |
+
+### Updated success criteria (v2)
+
+- Functioning app demonstrated with Earth vs space comparison for vitals, labs, and environment
+- Scenarios behave correctly: normal gives GREEN, several small changes give YELLOW, a training trigger gives RED, a missing required field gives INSUFFICIENT DATA
+- The explanation names the evidence, the rules fired, the missing information, and the context, with no causal claims
+- Status is identical with or without the AI
+- Mission log exports with simulated provenance
+- Published research is shown in a separate, verified panel
+- Presented without claiming clinical validation or readiness for spaceflight
+
+---
+
+# Original charter (v1, signed 22 September 2026)
+
+
 **Project:** Astronaut Health Monitoring & Decision-Support System (AstroCare)
 **Type:** Health Technology / Software / Human Space Exploration
 **Event:** 2026 NASA Space Apps Challenge

@@ -14,16 +14,18 @@
 | Space Apps organizers / judges | Evaluators | High | High | Functional, relevant, innovative, clearly explained response | Final presentation, live demo, concise documentation |
 | Wearable / medical device data providers | Potential tech partners | Medium | Medium | Compatible, reliable, secure data transfer into a future system | Technical requirements, integration specs, API docs |
 | Future space agency / mission management | Potential owner / decision authority | Medium | High | Safety, feasibility, mission value, resources, compatibility with operational systems | Executive summaries, milestone reviews, risk/status reports |
+| Research / operations analyst | Reviews data provenance, trends, and research context (features doc user) | Medium | Low | Clear simulated-vs-published labels, exportable data, transparent rules and reason codes | Mission log export, research panel, rules documentation |
+| Google (Gemini API provider) | Technology dependency for the AI explanation | Low | Medium | Availability, rate limits, terms of use, key security | API documentation, usage dashboard, status page |
 | General public / space community | Indirect | Low | Low | Understand the concept and value | Public demo or project summary |
 
 ## 2. Power vs. interest grid
 
+Updated 14 November 2026 so the grid matches the ratings in the register above (the original lab grid placed the flight surgeon and Mission Control under low power while the table rated them high).
+
 | | Low interest | High interest |
 |---|---|---|
-| **High power** | **Keep satisfied:** Instructor / sponsor; aerospace medicine and human performance experts | **Manage closely:** Nabeeha; Bruno and Subomi; Space Apps organizers/judges |
-| **Low power** | **Monitor:** General public; wearable/device data providers; future space agency/mission management | **Keep informed:** Additional team members; astronauts/crew; crew medical officer/flight surgeon; Mission Control/ground medical support |
-
-Note: the grid in the lab placed some stakeholders differently from their ratings in the register (for example, flight surgeon and Mission Control are rated High power in the table but sit in Low power on the grid). Worth reconciling before any final submission.
+| **High power** | **Keep satisfied:** Instructor / academic sponsor; Future space agency / mission management (medium interest); Aerospace medicine and human performance experts | **Manage closely:** Nabeeha; Bruno and Subomi; Space Apps organizers / judges; Crew medical officer / flight surgeon; Mission Control / ground medical support |
+| **Low power** | **Monitor:** General public / space community; Wearable and medical device data providers (medium); Google (Gemini API provider), which is a dependency to watch for availability | **Keep informed:** Additional team members; Astronauts / crew members; Research / operations analyst |
 
 ## 3. Analysis
 
@@ -33,3 +35,10 @@ The most critical stakeholders are the PM and team leads, astronauts, medical pr
 - **Astronauts** are the primary users, so their needs and feedback make the platform simpler and clearer. Communication: demos, clear dashboard info, feedback meetings.
 - **Crew medical officer, flight surgeon, Mission Control** need organized, accurate information via reports, alerts, and project reviews, since they interpret health data and identify needs.
 - **Judges** are reached through the final presentation, which must explain the problem, the solution, and the value AstroCare offers.
+
+## 4. v2 additions
+
+- **Research / operations analyst** is a user named in the v2 features doc. They need provenance labels (simulated vs published), exportable logs, and visible rule IDs.
+- **Gemini API provider** is a dependency, not a decision maker. Manage it through the fallback design (rules and template explanation work without it) and by keeping the API key server-side.
+- **Judges** will see the clickable prototype, the live app, and the pitch. The prototype and app must tell the same story (same fictional astronaut, same numbers).
+- The flight surgeon and crew medical officer remain the most important **readers** of the output, which is why the explanation must cite its evidence and never claim a cause.

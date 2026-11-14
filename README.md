@@ -1,66 +1,45 @@
 # AstroCare: NASA Space Apps 2026
 
-Astronaut Health Monitoring & Decision-Support System.
-Team: Nabeeha Tabassum (PM / Clinical & Health Lead), Bruno Gomes Silva (Team Lead, dashboard), Subomi Otusanya (Team Lead, baseline and data).
+Astronaut Health Monitoring and Decision-Support prototype. Team: Nabeeha Tabassum (PM, Clinical and Health Lead), Bruno Gomes Silva (frontend, dashboard), Subomi Otusanya (data, rules).
 
-## One-paragraph summary
+**Status (14 November 2026): plan v2. Documentation only, no application code yet.**
 
-AstroCare is a browser-based prototype that helps astronauts on long-duration missions notice when their health is drifting, understand why, and know what to do next. It uses simulated data, compares it against each astronaut's personal baseline across several indicators, classifies status as Green (Stable), Yellow (Monitor) or Red (Action Required), runs a guided self-assessment, and generates a mission medical-event report. It is decision support, not diagnosis.
+## Summary
 
-## Core idea
+AstroCare lets an astronaut compare simulated in-flight values with their Earth baseline, complete a four-step self-assessment, and get a status (GREEN, YELLOW, RED, INSUFFICIENT DATA) from deterministic illustrative rules. Gemini then explains the result in plain language with cited evidence, with an offline template fallback. Environment is context only. Everything is saved to a mission log. Decision support, not diagnosis.
 
-Health Data -> Personal Baseline -> Trend Recognition -> Assessment -> Action -> Reassessment -> Communication
+## Flow
+
+Form -> validate -> rules engine -> serverless proxy -> Gemini -> response check -> display -> mission log.
+Stack: React, Vite, Tailwind, TypeScript, Recharts, localStorage, Vercel.
+
+## Source of truth order
+
+1. `15` features doc, `14` clickable prototype and mockups
+2. `10` SRS (engineering, safety, tests)
+3. `12` architecture plan
+4. Project history docs `02` to `06`
+5. `09` stretch ideas
+
+Conflicts and decisions: `11-reconciliation.md`. Build from `07-prototype-spec.md`.
 
 ## Files
 
-| File | What it holds |
+| File | Holds |
 |---|---|
-| `01-challenge-brief.md` | The official NASA Space Apps challenge text, background, objectives, considerations |
-| `02-project-charter.md` | Lab 2: purpose, scope, deliverables, requirements, constraints, success criteria |
-| `03-stakeholders.md` | Lab 3: stakeholder table, power/interest grid, analysis |
-| `04-iteration-plan.md` | Lab 4: user stories, DoR/DoD, US3 acceptance criteria, MoSCoW/WSJF/RICE |
-| `05-standups.md` | Lab 5: three stand-up records and team reflections |
-| `06-risk-register.md` | Lab 7: risk register, sponsor update, monitoring approach |
-| `07-prototype-spec.md` | Build-ready spec that ties the team's plan to the challenge (includes my suggested additions, clearly marked) |
-| `08-demo-and-pitch.md` | Demo script and judging-criteria checklist |
-| `10-requirements-and-technical-design.md` | The SRS: functional and non-functional requirements, data contracts, tests, stack, Day 1/Day 2 plan. **Build from this** |
-| `11-reconciliation.md` | Where the SRS, lab docs, and innovation ideas disagree, decisions to make, and how the innovation pillars fit safely |
-| `12-architecture-plan.md` | Chosen flow (form, Gemini API, display), stack (React, Tailwind, TypeScript), plan only |
-| `13-technical-build-plan.md` | Technical build plan derived from 10, 11 and 12: contracts, rules engine, Gemini proxy and guard, screens, tests, Day 1/Day 2 schedule |
-| `09-gaps-and-innovation.md` | Gap analysis, data strategy, NASA benefit, differentiation, and the iterated innovation thesis |
-
-## Running the baseline app
-
-```
-npm install
-npm run dev     # http://localhost:5173
-npm test        # T01-T04, T06, T07 on the rules engine
-```
-
-Current state: Dashboard (indicator cards with sparklines, latest status, scenario picker, body map), Daily check form (body-map symptom picker), local rules engine, Results (status, rules fired, body map, baseline-band comparison, trend context, AI panel) and Trends (Recharts per indicator, illustrative threshold band, gaps not joined, data table). The trend history is a fictional simulated series (`src/data/history.json`) plus checks saved in localStorage.
-
-Visual system: neutral graphite dark theme with one blue accent, Geist Sans (Geist Mono only for rule IDs), flat cards with hairline borders. Tokens in `tailwind.config.js` (`bg`, `surface`, `edge`, `fg`, `accent`), component classes (`card`, `btn-*`, `tag`, `eyebrow`, `num`) in `src/index.css`. Fonts are bundled through @fontsource, so they work offline. Emerald, amber, red and zinc are kept for status only and always come with an icon and a text label.
-
-### Turning on the Gemini explanation
-
-1. Copy `.env.example` to `.env` (git-ignored) and set `GEMINI_API_KEY`. Optionally set `GEMINI_MODEL` (default `gemini-3.5-flash-lite`).
-2. `npm run dev`. The Vite dev middleware serves `POST /api/explain` using the same code as the Vercel function. On Vercel, set the same two env vars in the project settings.
-
-Without a key, the proxy returns `{ ai: null }` and the app runs rules-only (file 12 §6). The status always comes from the rules engine. Gemini only explains it, and its reply is schema-checked and filtered by `src/lib/aiGuard.ts` on the server and again on the client (file 13 §7).
-
-| Piece | File |
-|---|---|
-| System prompt (draft, pending clinical review) | `src/prompts/explain.v1.ts` |
-| Proxy core: validation, rate limit, 8 s timeout + 1 retry, guard | `server/explain.ts` |
-| Vercel entry point | `api/explain.ts` |
-| Safety guard (status echo, dose/drug/diagnosis filters) | `src/lib/aiGuard.ts` |
-| Client call + display | `src/lib/apiClient.ts`, `src/components/AiPanel.tsx` |
-| Tests (Gemini mocked) | `src/tests/ai.test.ts` |
-
-## Quick facts
-
-- Type: hackathon prototype, interactive browser app, simulated data only
-- Indicators in the charter: resting heart rate, HRV, SpO2, sleep and recovery, exercise performance, self-reported fatigue
-- MVP: dashboard, baseline comparison, G/Y/R status, guided assessment, medical-event report
-- Won't have this round: advanced AI assistant, real wearable integration
-- Charter date: September 22, 2026
+| `CLAUDE.md` | Rules for coding sessions (kept as in the repo) |
+| `01-challenge-brief.md` | NASA challenge text |
+| `02-project-charter.md` | Charter with v2 amendments |
+| `03-stakeholders.md` | Stakeholders, grid fixed, v2 additions |
+| `04-iteration-plan.md` | v2 backlog plus Lab 4 record |
+| `05-standups.md` | Historical stand-ups |
+| `06-risk-register.md` | Risks incl. v2 risks 7 to 16 |
+| `07-prototype-spec.md` | Master spec v2 |
+| `08-demo-and-pitch.md` | Four demo scenarios, checklist |
+| `09-gaps-and-innovation.md` | Gaps, NASA anchors, innovation |
+| `10-requirements-and-technical-design.md` | SRS |
+| `11-reconciliation.md` | Decisions D1 to D23, open decisions |
+| `12-architecture-plan.md` | Architecture and API contract |
+| `15-features-requirements-user-flows.md` | Features F01 to F12, flows |
+| `14-ui-design-and-prototype-reference.md` | Screens, demo values, design tokens |
+| `reference/` | Clickable HTML prototype, UI mockups, logo |

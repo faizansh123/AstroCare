@@ -1,38 +1,56 @@
-# Demo Script and Pitch Checklist
+# Demo Script and Pitch Checklist (v2)
 
-## 90 second story [Suggested]
+> Updated 14 November 2026 to follow `07-prototype-spec.md` and the user flows in `15-features-requirements-user-flows.md`. The old story (HRV, Green to Yellow to Red with a medical-event report) is replaced. All data is simulated and labelled.
 
-1. **Problem (15s):** On long missions, ground medical help is delayed and astronauts must catch their own health changes. One reading rarely shows it, several small drifts do.
-2. **Green (15s):** Dashboard with personal baselines, everything stable.
-3. **Drift (20s):** Run the scenario forward. Sleep drops, HRV falls, fatigue rises, resting HR creeps up. Status turns Yellow and the app says exactly which indicators and why.
-4. **Assessment (20s):** Guided self-assessment launches, astronaut reports symptoms, gets an action pathway.
-5. **Red and report (20s):** Condition worsens, status turns Red, escalation pathway appears, medical-event report is generated for the flight surgeon.
-6. **Close:** Data -> Baseline -> Trend -> Assessment -> Action -> Reassessment -> Communication. Decision support, not diagnosis.
+## The four demo scenarios
 
-## Pre-demo checklist [Team risk mitigations]
+| # | Scenario | Input | Expected result |
+|---|---|---|---|
+| 1 | Normal | Default values near baseline | GREEN, "No flags under demo rules" |
+| 2 | Several small changes | HR 96 (+24 vs 72), sleep 5.0 h, dizziness | YELLOW with reasons YEL-HR, YEL-SLEEP, YEL-SYMPTOMS |
+| 3 | Severe breathing difficulty | Symptom: severe breathing difficulty | RED (training-scenario trigger), "seek help regardless of color" |
+| 4 | Missing blood pressure | BP left blank | INSUFFICIENT DATA, never GREEN |
 
-- [ ] Offline build tested end to end
-- [ ] Recorded backup demo and screenshots ready
+Fictional crew member (suggested): Cdr. Alex Morgan, Lunar Orbit mission (fictional), Day 142. Use the canonical values in `14-ui-design-and-prototype-reference.md`.
+
+## 90 second story (Flows A, B, C)
+
+1. **Problem (15s):** Ground help is delayed on long missions. Astronauts need to see small changes against their own Earth baseline.
+2. **Flow A, dashboard (15s):** Baseline vs in-flight, trends, SpaceLab biomarkers, environment as context only.
+3. **Flow B, self-assessment (30s):** Four steps (symptoms and feelings, measurements, lifestyle and environment, review). Submit. Rules produce the status and reason codes. Gemini explains it in plain language with cited evidence. Show scenario 2 then 3, then 4 briefly.
+4. **Flow C, log and research (15s):** Mission log entry saved, export JSON, NASA research panel with citations and simulated/published labels.
+5. **Close (15s):** Rules decide, AI explains, never diagnoses. Missing data is shown, not hidden. Offline fallback works.
+
+## Pre-demo checklist
+
+- [ ] All four scenarios pass the acceptance tests
+- [ ] Gemini failure tested: "Offline explanation" fallback shows
+- [ ] API key only in serverless environment, not in repo or client
+- [ ] Cached or recorded backup for the Gemini step
+- [ ] Every screen shows "Simulation / Not for clinical use"
+- [ ] Rules labelled illustrative, rules version visible
+- [ ] Fictional mission and crew name on every screen, same values as prototype
+- [ ] Simulated vs published labels visible; Norsk 2015 numbers verified by Nabeeha
+- [ ] Recorded backup video and screenshots ready
 - [ ] No last-minute nonessential changes
-- [ ] Green -> Yellow -> Red scenario passes every acceptance criterion
-- [ ] Every threshold labelled experimental on screen
-- [ ] Simulated data clearly labelled as simulated
+- [ ] Submission items checked on the event page (video, code link, project page)
 
-## Charter success criteria check
+## Charter success criteria check (v2)
 
-- [ ] Functioning app demonstrated
-- [ ] Simulated indicators processed (5+)
-- [ ] Personal-baseline comparison shown
-- [ ] Green -> Yellow -> Red progression
-- [ ] Yellow launches guided assessment
-- [ ] Red gives escalation pathway
-- [ ] Medical report generated
-- [ ] Judges can follow problem, solution, workflow
+- [ ] Working React app demonstrated
+- [ ] Four statuses and reason codes shown
+- [ ] Earth baseline comparison (absolute and % change)
+- [ ] Gemini explanation with evidence refs and fallback
+- [ ] Mission log with export
+- [ ] Context-only environment, no causal claims
 - [ ] No claim of clinical validation or flight readiness
 
 ## Anticipated judge questions
 
-- *Where do thresholds come from?* Experimental placeholders based on personal-baseline deviation, to be validated by aerospace medicine.
-- *Why personal baseline instead of normal ranges?* Spaceflight shifts physiology, so deviation from the individual is more meaningful.
-- *Real data?* Not available, so simulated; the data shape is designed to accept real wearable feeds later.
-- *Does it replace the flight surgeon?* No, it supports the astronaut and hands off structured information.
+- *Does the AI decide status?* No. Deterministic rules do. Gemini only explains, and its output is checked against the rules result.
+- *Where do thresholds come from?* Illustrative placeholders in one config file, to be validated by aerospace medicine.
+- *Why Earth baseline instead of population ranges?* Spaceflight shifts physiology, so change from the individual is more meaningful.
+- *Real data?* Personal data is simulated and labelled. Published findings appear only in the research panel with sources.
+- *What if Gemini or the network fails?* Rules and a template explanation still work.
+- *Does it replace the flight surgeon?* No, it supports the astronaut and gives structured information to medical staff.
+- *How does it relate to NASA work?* It follows the spirit of NASA's Clinical Decision Support work and Earth-independent medical operations (see file 09).

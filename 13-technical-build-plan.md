@@ -1,5 +1,7 @@
 # AstroCare Technical Build Plan
 
+> **v2 note (14 Nov 2026):** this plan was written before the v2 docs. The features doc (`15`), prototype and mockups (`14`), master spec (`07`) and decisions (`11`) now define scope: Earth baseline with absolute and % deltas, four-step form, SpaceLab, environment context, NASA research panel, mission log, RED as training trigger only. Align this build plan and the existing code with those before building further. Safety rules in file 10 still apply.
+
 Status: plan, no code yet. Derived from the SRS (file 10), the architecture plan (file 12) and the reconciliation (file 11). Each section names the doc it comes from. Where a team decision was still open, this plan takes the option the docs recommend and marks it **[Default, confirm]**.
 
 ## 1. What we are building

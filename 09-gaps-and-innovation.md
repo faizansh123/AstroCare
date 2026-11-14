@@ -1,5 +1,7 @@
 # Gaps, Differentiation, and Innovation Ideas
 
+> **Status after the v2 plan (see `11-reconciliation.md` D21):** the new docs replace the adaptation-aware baseline with an Earth-vs-space comparison plus a separately labelled published-research panel. Hazard context is now the environment screen and mission log (context only, never changes status). Delay-aware escalation is a P2 stretch. The data-strategy section below still applies: label everything simulated, build scenarios from cited trends, and verify published numbers before judging.
+
 > **Correction (see `11-reconciliation.md`):** earlier wording about context or adaptation "reducing false alarms" or "softening alerts" is unsafe under the SRS. Context only annotates, and status follows the more conservative comparison. The text below has been updated accordingly.
 
 Goal: fix the weak spots in the current plan (data, space relevance, NASA benefit, what is different) and pick a sharper, more innovative thesis. Ideas are iterated in rounds: propose, attack, improve.
@@ -112,7 +114,7 @@ Supporting features: task readiness card, countermeasure loop (prescribe, adhere
 - **Saves crew time**: one glance dashboard, guided assessment, auto-generated report
 - **Saves ground time**: flight surgeons receive a structured, prioritized handoff instead of raw data
 - Addresses the **skill erosion** concern by embedding just-in-time explanations
-- **Fewer false alarms** through adaptation and hazard context, which matters when crew attention is scarce
+- **Better-explained alerts** through adaptation and hazard context (status stays conservative), which matters when crew attention is scarce
 - Spinoff: remote clinics, polar stations, submarines, and any place with delayed medical access
 
 ## 6. How it is different (one table for the slide)
@@ -132,7 +134,7 @@ Supporting features: task readiness card, countermeasure loop (prescribe, adhere
 
 - Charter and spec: add "adaptation-aware baseline," "hazard context," and "delay-aware escalation" as the headline differentiators
 - Spec data model: add `missionDay`, `phase`, `events[]` (radiation shelter, CO2, EVA, missed exercise), and `commDelayMin`
-- Status logic: compare to expected curve for the phase, not a flat mean; use events to annotate and soften or sharpen alerts
+- Status logic: show the expected range for the mission day next to the personal baseline and follow the more conservative one; events annotate only and never lower a status
 - Risk register: add risk "adaptation curve not validated" and "context events scripted not sensed" with mitigation = label clearly
 - Pitch: open with "your normal changes in space"
 

@@ -1,141 +1,184 @@
-# AstroCare Prototype Spec
+# AstroCare Master Spec v2
 
-> **Superseded in part.** The Requirements and Technical Design (`10-requirements-and-technical-design.md`) and `11-reconciliation.md` take priority where they conflict with this file (four status states including Insufficient Data, symptom override, no hazard inference, no status softening from context).
+This is the **single build spec**. It merges the features doc (file 15), the clickable prototype and mockups (file 14), the SRS (file 10), and the architecture plan (file 12), using the decisions in file 11 (D1 to D23). If anything here conflicts with an older file, this file wins.
 
-Legend: **[Team]** comes from the lab documents. **[Suggested]** is my proposal to close gaps against the NASA challenge brief. Keep, change, or drop any suggestion.
+All data is simulated. Thresholds are illustrative demonstration rules, not validated flight medicine. The app is not diagnostic and not an operational flight-medical system.
 
-All thresholds below are **experimental placeholders**, not clinically validated. The app must say so on screen.
+## 1. Product
 
-## 1. Product in one line [Team]
+**AstroCare** is a mission-aware astronaut health monitoring and decision-support prototype. It compares **Earth (preflight) baselines** with **simulated in-flight** vitals, labs, self-assessment, and cabin environment, applies transparent rules to give a GREEN / YELLOW / RED / INSUFFICIENT DATA review category, and uses **Gemini** to write a grounded explanation. It keeps a timestamped mission log and a separately labelled panel of published research.
 
-Turns an astronaut's health indicators into personal trends, a Green/Yellow/Red status, a guided assessment, and a medical-event report, so the astronaut knows when health is changing, why, and what to do next.
+Tagline: Monitor. Support. Explore healthier.
 
-## 2. Users [Team]
+Value in one line: it shows **what changed, when it changed, and what context merits review**, then hands the astronaut or medical team a clear next step.
 
-- Primary: astronaut / crew member
-- Secondary: crew medical officer, flight surgeon, Mission Control (receive the report)
+## 2. Users
 
-## 3. Indicators
+Astronaut (primary), crew medical officer, ground flight surgeon, research/operations analyst.
 
-| Indicator | Source | Why it matters in spaceflight | Status |
+## 3. Evidence and honesty policy
+
+- Personal values are **simulated** and labelled so everywhere
+- Published studies appear **only** in the NASA Research panel, labelled with cohort size and source, never mixed into the personal baseline
+- No live ISS, NASA, wearable, dosimeter, or lab feed is claimed
+- No diagnosis, no drug dosing, no emergency treatment, no validated risk score
+- GREEN never says "safe": it says "No flags under demo rules"
+- Visible "Simulation / Not for clinical use" label on every screen
+
+## 4. Features
+
+| ID | Feature | Priority | Notes for the build |
 |---|---|---|---|
-| Resting heart rate | Simulated | Cardiovascular adaptation, stress, deconditioning | [Team] |
-| HRV | Simulated | Autonomic stress and recovery | [Team] |
-| SpO2 | Simulated | Closed-environment air quality, respiratory issues | [Team] |
-| Sleep and recovery (hours, quality) | Simulated | Circadian disruption, isolation | [Team] |
-| Exercise performance | Simulated | Bone and muscle loss countermeasure, deconditioning | [Team] |
-| Self-reported fatigue / mood | Astronaut input | Behavioral health, isolation and confinement | [Team] |
-| Blood pressure | Simulated | Named in the challenge brief | [Suggested] |
-| Body temperature | Simulated | Named in the challenge brief | [Suggested] |
-| Blood glucose (mg/dL) | Simulated | Named in the challenge brief, nutrition | [Suggested] |
+| F01 | Mission dashboard | P0 | Overall status card, indicator cards with baseline and delta, survey completion, environment snapshot, latest log, last-sync and data-age badge |
+| F02 | Earth vs space vital signs | P0 | HR, SBP, DBP, temperature, sleep, mood. Absolute and % change, baseline timestamp, BP components separate |
+| F03 | SpaceLab biomarkers | P0 | Hemoglobin, WBC, glucose, calcium. Specimen time, units, baseline, delta, data-quality status |
+| F04 | Daily self-assessment | P0 | 4-step stepper. Symptoms (incl. headache, dizziness, nausea, breathing difficulty) with severity, fatigue, mood, sleep, notes |
+| F05 | Assessment (traffic light) | P0 | Rules engine, 4 states, rules-fired list, missing-data handling |
+| F06 | AI explanation | P0 | Gemini, F06 output contract, template fallback |
+| F07 | Environment | P0 | CO2, cabin temperature, humidity, light cycle, mission phase, radiation only if entered. Context only |
+| F08 | Body map | P1 | Brain/head, heart, lungs, blood/immune, bones, sleep/mood. Shows related values and a no-causation note |
+| F09 | Health trends | P0 | Time series with Earth baseline line, mission-day axis, annotations from log events, filters |
+| F10 | Guidance library | P1 | Sections: For You Now, Health and Prevention, Spaceflight Hazards, Measurement Guide. Each entry has a source and review status |
+| F11 | Mission log | P0 | Chronological entries for measurements, assessments, symptoms, environment, notes. Export JSON |
+| F12 | Research provenance | P0 | NASA Research screen: study, cohort size, units, timepoints, data origin, "published" vs "simulated" labels |
 
-Charter requires at least 5 indicators. Core six are enough for the MVP. Adding BP, temperature, and glucose costs little in simulated data and maps directly to the brief's wording.
+Scope warning: ten P0 features is a lot. If time runs short, cut in this order: F09 filters and annotations, F03 data-quality detail, F07 light cycle and radiation. Never cut F05, F06 fallback, INSUFFICIENT DATA, or the provenance labels.
 
-## 4. Data model [Suggested]
+## 5. Data dictionary
 
-```json
-{
-  "astronaut": { "id": "A1", "name": "Cdr. Demo", "environment": "Lunar base" },
-  "baseline": {
-    "restingHR": { "mean": 60, "sd": 4 },
-    "hrv":       { "mean": 70, "sd": 8 },
-    "spo2":      { "mean": 98, "sd": 0.7 },
-    "sleepHrs":  { "mean": 7.2, "sd": 0.6 },
-    "exercise":  { "mean": 100, "sd": 6 },
-    "fatigue":   { "mean": 2, "sd": 0.8 }
-  },
-  "readings": [
-    { "day": 1, "restingHR": 61, "hrv": 69, "spo2": 98, "sleepHrs": 7.1, "exercise": 101, "fatigue": 2 }
-  ],
-  "symptoms": []
-}
-```
+| Signal | Earth baseline (demo) | In-flight input | Rules / display |
+|---|---|---|---|
+| Heart rate | 72 bpm | bpm, time | delta, %, YELLOW if +20 bpm or more |
+| Systolic BP | 120 mmHg | mmHg, posture, time | delta, % (display only) |
+| Diastolic BP | 80 mmHg | mmHg | delta, % (display only) |
+| Body temperature | 36.7 C | C, site | delta (display only) |
+| Sleep | 8 h | hours, preceding night | delta, YELLOW if under 6 h |
+| Mood | 8 / 10 | 1-10, 10 is best | delta, YELLOW if 4 or lower |
+| Fatigue | n/a | 0-10 | YELLOW if 7 or higher |
+| Symptoms | n/a | list + severity + notes | YELLOW if 2 or more. Training trigger gives RED |
+| Hemoglobin | 145 g/L | g/L, specimen time | delta, %, YELLOW if 10% or more |
+| WBC | 6.2 x10^9/L | value, time | delta, % (display only) |
+| Glucose | 4.8 mmol/L | mmol/L (mg/dL converts x18) | delta, % (display only) |
+| Calcium | 2.35 mmol/L | mmol/L | delta, % (display only) |
+| Cabin CO2 | reference 0.45 % | % | context sentence at 0.5% or higher |
+| Cabin temperature | mission reference | C | context |
+| Humidity | mission reference | % | context |
 
-The team flagged data consistency as the main integration blocker, so freeze this shape first and have dashboard, baseline, and status code all read it.
+**Formulas:** absolute change = current - baseline. % change = (current - baseline) / baseline x 100, only if baseline is nonzero and units and timeframe are comparable. Never use published group averages as the individual baseline. Reject incompatible units.
 
-## 5. Baseline and status logic [Suggested, to be agreed by Nabeeha as clinical lead]
+## 6. Navigation (11 screens, 4 groups)
 
-1. For each indicator, compute deviation from personal baseline in standard deviations (z-score), signed so that "worse" is positive (for example HR up, HRV down, SpO2 down, sleep down, exercise down, fatigue up).
-2. Flag an indicator as **drifting** at |z| >= 1.5 and **concerning** at |z| >= 2.5.
-3. Look at the trend too: a 3-day rolling mean moving the wrong way counts toward drift.
-4. Overall status:
-   - **Green (Stable):** no demo rules fired and required fields present. Say "No flags under demo rules", not "medically cleared"
-   - **Yellow (Monitor):** two or more drifting, or one concerning
-   - **Red (Action Required):** seeded urgent scenario, or a red-flag symptom, or other configurable escalation rule (illustrative, thresholds unvalidated)
-   - **Insufficient Data:** missing, stale, implausible, or contradictory inputs. Ask for remeasurement, never default to Green
-   - Symptoms always show and never get suppressed by normal vitals
-5. Always output the **explanation**: which indicators and symptoms drove the status (this is AC5).
-
-Why multi-indicator: the charter's problem statement is that several small changes together mean more than any single reading.
-
-## 6. Screens and flow
-
-1. **Dashboard [Team]:** big status badge (G/Y/R), tiles for each indicator with sparkline, baseline band, and color
-2. **Trend charts [Suggested, from brief]:** time series per indicator with the baseline range shaded
-3. **Body map [Suggested, from brief]:** clickable human figure (heart, lungs, brain, bones/muscle, etc.) showing the linked indicator, plain-language explanation, and risk caused by the spaceflight hazard
-4. **Why this alert [Team, AC5]:** list of contributing indicators and symptoms
-5. **Guided self-assessment [Team]:** launches on Yellow or Red. Symptom checklist, simple instructions for how to take each measurement, outputs an action pathway
-6. **Action pathway [Team]:** Yellow gives self-care steps plus scheduled reassessment. Red gives escalation steps: contact crew medical officer / flight surgeon, notify Mission Control
-7. **Reassessment [Team]:** re-measure after the actions and update status
-8. **Medical-event report [Team]:** auto-generated summary (see below)
-9. **Scenario simulator [Team]:** controls to play the Green -> Yellow -> Red deterioration for the demo
-
-## 7. Medical-event report contents [Suggested]
-
-- Astronaut, mission day, environment
-- Status and time it changed
-- Indicators with baseline, current value, deviation
-- Reported symptoms
-- Actions taken and reassessment result
-- Recommended escalation
-- Footer: "Prototype decision support. Thresholds experimental, not clinically validated."
-
-## 8. Closing gaps against the challenge brief [Suggested]
-
-| Brief asks | How AstroCare answers |
+| Group | Screens |
 |---|---|
-| Which measurements can be performed in space? | "How to measure" help text on each tile (wearable, pulse oximeter, cuff, thermometer, glucometer, questionnaire) |
-| Why is an exam needed? | Short "why this matters" per indicator tied to a hazard |
-| How do hazards affect indicators? | Body map and tile info map each of the five NASA HRP hazards to indicators |
-| When to involve crew or ground? | Yellow = crew self-management and monitoring, Red = escalate to flight surgeon |
-| How to prevent critical conditions? | Action pathway with preventive steps (sleep, exercise countermeasures, hydration/nutrition, rest) |
-| Different environments | Environment selector (spacecraft, station, rover, lunar/Mars base) that changes context text |
-| Routine prompts | Daily check-in reminder to log measurements and fatigue |
-| Gamification | Streaks for daily check-ins and exercise adherence, mission health score |
-| Color coding | G/Y/R on everything |
-| Beginner friendly | Plain-language explanations, no jargon |
+| Monitor | Dashboard (F01), Vital Signs (F02), SpaceLab (F03), Environment (F07) |
+| Assess | Self-Assessment (F04), Assessment (F05, F06) |
+| Understand | Body Map (F08), Health Trends (F09), Guidance Library (F10), NASA Research (F12) |
+| Record | Mission Log (F11) |
 
-Hazard to indicator mapping (for the explanations):
+Self-assessment stepper: **1 Symptoms and feelings** (sleep, fatigue, mood, symptoms) -> **2 Measurements** (HR, SBP, DBP, temperature) -> **3 Lifestyle and environment** (cabin CO2, temperature, humidity, notes) -> **4 Review** (shows missing or invalid fields, then Calculate).
 
-| NASA HRP hazard | Indicators it touches |
+Visual design: follow the mockup (dark space theme, tokens in file 14). Behavior: follow the clickable prototype.
+
+## 7. Assessment engine (all rules in one configurable file)
+
+Evaluation order:
+
+1. Validate inputs (units, ranges, timestamps). Invalid or conflicting values are excluded and reported
+2. Check **training triggers** (default: severe breathing difficulty). If selected: **RED**, even if every number looks normal
+3. Check required inputs and data age. Missing, invalid, conflicting, or stale: **INSUFFICIENT DATA**
+4. Evaluate YELLOW rules
+5. Otherwise **GREEN**
+
+| Rule ID | Trigger | Result |
+|---|---|---|
+| RED-TRAIN-BREATHING | Severe breathing difficulty selected | RED, "simulation only", follow approved crew medical procedures |
+| YEL-HR | HR change of +20 bpm or more | YELLOW reason |
+| YEL-SLEEP | Sleep under 6 h | YELLOW reason |
+| YEL-FATIGUE | Fatigue 7 or higher | YELLOW reason |
+| YEL-MOOD | Mood 4 or lower | YELLOW reason |
+| YEL-SYMPTOMS | 2 or more symptoms | YELLOW reason |
+| YEL-HEMOGLOBIN | Hemoglobin change of 10% or more | YELLOW reason |
+| CTX-CO2 | CO2 0.5% or higher | Context sentence only |
+| DATA-MISSING / DATA-INVALID / DATA-STALE | Required input missing, invalid or conflicting, or older than the stale limit | INSUFFICIENT DATA |
+
+Rules for the rules:
+
+- Environment and log events are **context only**. They never change the status and never claim a cause
+- Labs add deltas and review notes. They never diagnose anemia, infection, metabolic disease, or bone loss
+- Symptoms are always shown. "Seek help regardless of color" is always shown
+- Every result lists: readings, baselines, deltas, rules fired, timestamp, rules version, limitations
+- Status is computed by pure functions. **No LLM decides the status**
+
+## 8. AI explanation (Gemini)
+
+Pipeline: form -> validate and normalize -> **rules engine** -> serverless proxy -> **Gemini** -> response check -> display. Details in file 12.
+
+**Input to Gemini:** validated measurements, baseline deltas, symptoms, environment, lab results, data age, mission phase, the rules result (status and rules fired), and approved guidance snippets.
+
+**Output contract (F06):** status (copied from rules, never changed), observed evidence, baseline comparison, possible contextual factors, missing or uncertain information, recommended verification, escalation pathway.
+
+**Safety:** never say CO2 caused a headache, never invent values or citations, never give unapproved treatment, never override the status. **Every sentence must reference an input field or an approved guidance source**, and the app checks this before showing it.
+
+**Fallback:** if Gemini is offline, slow, or returns something invalid, show the built-in rule-grounded explanation text (the prototype's template) with the label "Offline explanation".
+
+## 9. Typed entities (TypeScript)
+
+Astronaut, Mission, Baseline, Observation, LabResult, SymptomSurvey, EnvironmentSample, Assessment, GuidanceArticle, LogEvent, plus RulesConfig and AiExplanation. Field lists are in file 15 section 9. Add `source: "simulated" | "published"` and `quality` to every observation.
+
+## 10. Non-functional
+
+| Area | Requirement |
 |---|---|
-| Space radiation | Fatigue, immune-related symptoms, temperature |
-| Isolation and confinement | Mood/fatigue, sleep, HRV |
-| Distance from Earth | Why autonomy matters, delayed contact with ground |
-| Gravity fields | Resting HR, BP, exercise performance, bone/muscle |
-| Hostile closed environment | SpO2, sleep, temperature, nutrition and glucose |
+| Accessibility | Keyboard navigation, visible focus, status = color + text + icon, readable contrast, descriptive errors |
+| Responsive | Desktop and tablet |
+| Persistence | localStorage + export/import JSON. Do not claim encrypted clinical storage |
+| Offline | All but the AI explanation. Last-sync and stale-data indicators |
+| Privacy | Fictional data only. No real health data to Gemini. No secrets in the frontend |
+| Reliability | Deterministic outputs for identical inputs. No crash on blank or invalid input |
+| Performance | Local calculations instant on a normal laptop |
+| Transparency | Simulation label, sources panel, rules version visible |
+| Security | Sanitize displayed free text. API key only in the serverless function |
 
-Check these against NASA HRP pages before the final pitch and cite them.
+## 11. Acceptance tests
 
-## 9. Tech suggestion [Suggested]
+**Scenario tests (from the features doc):**
 
-Single-page browser app (the charter requires browser-based and an offline demo build). Plain HTML/JS or React plus a chart library, with a local JSON dataset, no backend. Easy to keep offline for the demo and to screen-record as backup.
+| Scenario | Expected |
+|---|---|
+| HR 72 -> 92 | +20 bpm, +27.8%, YELLOW reason |
+| BP 120/80 -> 116/74 | -4 / -6 mmHg, shown separately, no flag |
+| Sleep 8 -> 5.5 h | -2.5 h, YELLOW reason |
+| CO2 raised + headache | Context mentioned, no causal claim |
+| Hemoglobin 145 -> 137 g/L | -8 g/L, -5.5%, no flag, "trend not diagnosis" |
+| Severe breathing difficulty | RED training scenario, protocol text |
+| Required field missing | INSUFFICIENT DATA |
+| Export mission log | Chronological, with simulated provenance |
 
-## 10. MVP build order [Team priorities, order suggested]
+**Boundary tests:** HR +19 vs +20, sleep 6.0 vs 5.9, fatigue 6 vs 7, mood 5 vs 4, symptoms 1 vs 2, hemoglobin -9.9% vs -10%, CO2 0.49 vs 0.50, zero baseline guard.
 
-1. Data shape plus simulated dataset for three scenarios (Green, Yellow, Red)
-2. Dashboard (US1)
-3. Baseline comparison (US2)
-4. Status logic with explanation (US3)
-5. Guided assessment and action pathway (US4)
-6. Medical-event report (US5)
-7. Scenario testing (T1), UI polish (T2)
-8. Stretch: body map, gamification, environment selector
+**Safety tests (from the SRS):** symptom with normal vitals still shows and guides, invalid input blocks calculation, incompatible units rejected, stale data gives INSUFFICIENT DATA, AI output with an unknown field reference is discarded, AI failure shows the fallback, status never changes because of AI text.
 
-## 11. Guardrails [Team]
+**Other:** keyboard-only navigation, export matches screen, offline run of the non-AI flow, mockup visual match.
 
-- Decision support, not diagnosis
-- Simulated data only, labelled as such
-- Thresholds experimental, future aerospace-medicine validation required
-- No autonomous medication advice
-- No advanced AI assistant or real wearable integration this round
+**Demo scenarios to build:** (1) Normal day -> GREEN, (2) several small changes (HR +24, sleep 5.0, dizziness) -> YELLOW, (3) severe breathing difficulty -> RED, (4) missing blood pressure -> INSUFFICIENT DATA.
+
+## 12. Build order (sprints)
+
+| Sprint | Work |
+|---|---|
+| 1 | Shell and navigation, TypeScript types, baseline and vitals, Earth-vs-space comparison and chart, simulated-data labels |
+| 2 | SpaceLab, self-assessment stepper, environment, body map |
+| 3 | Rules engine and tests, Gemini proxy and explanation with fallback, guidance library, mission log and export |
+| 4 | Scenario testing, accessibility, research panel and citations, demo storytelling, pitch rehearsal |
+
+## 13. Ownership (proposed, to confirm)
+
+| Person | Area |
+|---|---|
+| Bruno | React and Tailwind UI, shell, dashboard, forms, deployment |
+| Subomi | TypeScript types, rules engine, tests, data, API client and serverless proxy |
+| Nabeeha | Rules wording, guidance review, Gemini safety prompt and output review, research verification, acceptance tests, presentation |
+
+## 14. Open decisions
+
+See file 11, section "Still open".

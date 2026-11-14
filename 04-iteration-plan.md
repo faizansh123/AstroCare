@@ -1,4 +1,36 @@
-# Lab 4: Iteration Planning and Prioritization
+# Iteration Plan (Lab 4, with v2 backlog)
+
+> **Update 14 November 2026:** the plan changed after the features doc, clickable prototype, and mockups. The Lab 4 content below is kept as the course record. The **v2 backlog** in the next section is what the team now builds. Story points for v2 items are **not estimated yet**. Estimate them with Planning Poker and record the actual votes.
+
+## v2 backlog (follows `07-prototype-spec.md`)
+
+| ID | User story | Feature | Priority | Sprint | Owner (proposed) | Estimate |
+|---|---|---|---|---|---|---|
+| V1 | As an astronaut, I want a dashboard showing status, key indicators, and the latest log so I can see my health at a glance | F01 | P0 | 1 | Bruno | tbd |
+| V2 | As an astronaut, I want to compare my in-flight vitals with my Earth baseline (absolute and % change) so I can see what changed | F02 | P0 | 1 | Subomi, Bruno | tbd |
+| V3 | As an astronaut, I want to complete a daily self-assessment in four steps so I can report symptoms, mood, sleep, and fatigue | F04 | P0 | 2 | Bruno, Nabeeha (wording) | tbd |
+| V4 | As an astronaut, I want to see SpaceLab biomarkers against baseline with units and specimen time | F03 | P0 | 2 | Subomi | tbd |
+| V5 | As an astronaut, I want to see cabin conditions as context for how I feel, without being told a cause | F07 | P0 | 2 | Bruno | tbd |
+| V6 | As an astronaut, I want to explore a body map so I can see related values and context per body area | F08 | P1 | 2 | Bruno | tbd |
+| V7 | As an astronaut, I want a GREEN / YELLOW / RED / INSUFFICIENT DATA status with the reasons shown | F05 | P0 | 3 | Subomi, Nabeeha | tbd |
+| V8 | As an astronaut or medical reviewer, I want a plain-language explanation that cites the evidence and uncertainty (Gemini with offline fallback) | F06 | P0 | 3 | Subomi, Nabeeha | tbd |
+| V9 | As an astronaut, I want a guidance library with sources and escalation reminders | F10 | P1 | 3 | Nabeeha | tbd |
+| V10 | As a crew medical officer, I want a timestamped mission log I can export | F11 | P0 | 3 | Bruno | tbd |
+| V11 | As a user, I want to see trends over mission days against my Earth baseline | F09 | P0 | 1 to 3 | Bruno | tbd |
+| V12 | As a research analyst, I want a NASA research panel with citations, cohort sizes, and simulated-vs-published labels | F12 | P0 | 4 | Nabeeha | tbd |
+| T1 | Scenario, boundary, and safety tests (file 07, section 11) | n/a | P0 | 3 to 4 | Subomi | tbd |
+| T2 | Accessibility pass, demo storytelling, pitch rehearsal | n/a | P0 | 4 | All | tbd |
+
+**Definition of Ready and Done** from Lab 4 still apply. Add to Done: matches the mockup visual design, uses the typed entities, has a test for any rule it touches, shows simulated/published labels where data appears.
+
+**Prioritization note:** the Lab 4 MoSCoW, WSJF, and RICE results ranked the status feature first and the dashboard second. Under v2 the same order holds, but INSUFFICIENT DATA handling and provenance labels are now Must Have because they protect against false reassurance.
+
+**Won't have this round (unchanged):** real wearable or device integration, validated clinical thresholds, autonomous treatment advice. **Stretch:** delay-aware escalation, PWA caching, printable event summary.
+
+---
+
+# Lab 4 record (original)
+
 
 **Iteration length:** 2 weeks
 **Team:** Nabeeha Tabassum, Bruno Gomes Silva, Subomi Otusanya

@@ -1,5 +1,7 @@
 # AstroCare Requirements and Technical Design (SRS)
 
+> **Status:** kept as the engineering, safety, and test source. Where it conflicts with the features doc (file 15), the prototype, or the mockups, follow `07-prototype-spec.md` and `11-reconciliation.md`. Main differences: the v2 plan uses an **Earth (preflight) baseline** with absolute and % deltas (not personal z-scores), adds **SpaceLab, environment, NASA Research, mission log**, makes **RED a training-scenario trigger only**, and uses **Gemini** for the explanation with rules deciding the status.
+
 Source: "Astronaut Health Assessment & Guidance System, Software Requirements Specification and Technical Design", v1.0, 14 November 2026. Hackathon prototype, simulated data. Roles are proposed, not confirmed. Details are proposals, not NASA requirements or verified clinical standards.
 
 ## Executive decision
