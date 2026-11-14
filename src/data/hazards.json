@@ -1,7 +1,7 @@
 {
   "version": "hazard-links-0.1",
   "reviewStatus": "Draft written by the build, pending clinical review (Nabeeha). Not a validated clinical association table.",
-  "label": "Possible spaceflight factors. A symptom MAY be related to these hazards. The app cannot establish the cause of a symptom for one person, and these links never change the status (D24, file 11).",
+  "label": "Possible spaceflight factors. A symptom MAY be related to these hazards. The app cannot establish the cause of a symptom for one person, and these links never change the status.",
   "source": { "label": "NASA Human Research Program: Five Hazards of Human Spaceflight", "url": "https://www.nasa.gov/hrp/hazards/" },
   "hazards": [
     { "id": "radiation", "name": "Space radiation",

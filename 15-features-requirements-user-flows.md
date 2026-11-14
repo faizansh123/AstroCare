@@ -4,7 +4,7 @@ Source: "Mission-aware astronaut health monitoring, Product Requirements, Techni
 
 ## Executive summary
 
-AstroCare is a research-informed astronaut wellness and health-trend prototype. It unifies preflight Earth baselines, simulated in-flight vital signs, laboratory biomarkers, daily self-assessments, space-environment context, body-system visualization, longitudinal trends, an evidence-based guidance library, and a timestamped mission log. A transparent rules engine generates illustrative GREEN / YELLOW / RED review categories and an AI-style explanation grounded in the inputs and their provenance. It is not a diagnostic or operational flight-medical system.
+AstroCare is a research-informed astronaut wellness and health-trend prototype. It unifies preflight Earth baselines, simulated in-flight vital signs, laboratory biomarkers, daily self-assessments, space-environment context, body-system visualization, longitudinal trends, and an evidence-based guidance library. A transparent rules engine generates illustrative GREEN / YELLOW / RED review categories and an AI-style explanation grounded in the inputs and their provenance. It is not a diagnostic or operational flight-medical system.
 
 ## 1. Goals, boundaries, evidence policy
 
@@ -28,7 +28,7 @@ AstroCare is a research-informed astronaut wellness and health-trend prototype. 
 | F08 | Interactive body map | Select brain/head, heart, lungs, blood/immune, bones, sleep/mood to inspect relevant symptoms, trends, context | P1 |
 | F09 | Health trends | Time series, Earth baseline reference, changes over mission days, annotations and filters | P0 |
 | F10 | Guidance library | Research-informed educational cards, sources, when-to-escalate reminders, reviewed content and version | P1 |
-| F11 | Mission log | Chronological audit of measurements, assessments, symptoms, environment, crew notes. Export | P0 |
+| F11 | ~~Mission log~~ | **Removed** (D25, owner request 14 Nov 2026) | - |
 | F12 | Research provenance | Study citations, cohort sizes, units, timepoints, data origin, simulated-versus-published labels | P0 |
 
 ## 3. Data dictionary and baseline logic
@@ -78,14 +78,14 @@ Demo rules are intentionally illustrative and configurable, not validated flight
 3. Complete self-assessment, save symptoms, mood, sleep (fatigue, symptoms, mood, notes)
 4. Review SpaceLab results, select body-map region if relevant (biomarkers, cabin conditions, body map)
 5. Inspect environment, run integrated assessment
-6. See GREEN / YELLOW / RED with evidence and uncertainty, open guidance, save mission log
+6. See GREEN / YELLOW / RED with evidence and uncertainty, open guidance
 
 **Flow B: Crew medical review**
 
 1. Open flagged assessment, inspect timestamp and data quality
 2. Compare vitals and labs to the individual Earth baseline and prior days
 3. Review symptom timeline, environmental context, body-map findings
-4. Document follow-up or escalation under approved protocols, append to mission log
+4. Document follow-up or escalation under approved protocols
 
 **Flow C: Research context**
 
@@ -95,7 +95,7 @@ Demo rules are intentionally illustrative and configurable, not validated flight
 
 ## 7. System architecture
 
-Browser UI (React/TypeScript or standalone HTML demo) -> typed application state -> baseline comparison calculator -> assessment rules -> explanation formatter -> mission log.
+Browser UI (React/TypeScript or standalone HTML demo) -> typed application state -> baseline comparison calculator -> assessment rules -> explanation formatter -> assessment history.
 
 Optional future backend: FastAPI or Node API -> PostgreSQL or time-series storage -> ingestion adapters (wearables, environment, lab system) -> source registry and audit events. For the hackathon, local-only browser storage and sample JSON are sufficient. Do not claim encrypted clinical storage.
 
@@ -135,13 +135,12 @@ Optional future backend: FastAPI or Node API -> PostgreSQL or time-series storag
 | Hemoglobin 145 -> 137 g/L | -8 g/L, -5.5%, trend not diagnosis |
 | Severe breathing difficulty selected | RED training scenario, approved-protocol escalation text |
 | Required field missing | INSUFFICIENT DATA rather than automatic GREEN |
-| Export mission log | Chronological records with demo provenance |
 
 ## 11. Delivery plan
 
 - **Sprint 1:** shell/navigation, typed baseline/vitals, vitals comparison and chart, sample data labels
 - **Sprint 2:** SpaceLab, symptom survey, environment and body map
-- **Sprint 3:** assessment rule engine, explanations, guidance library, mission log and export
+- **Sprint 3:** assessment rule engine, explanations, guidance library
 - **Sprint 4:** scenario testing, accessibility, demo storytelling, research citations, pitch rehearsal
 
 ## 12. Risks and mitigations
@@ -165,9 +164,9 @@ Reference values must be verified against original tables before use in a judged
 
 (The same diagrams appear in the original upload and in the later project zip. The zip's redrawn versions add the detail below.)
 
-1. **Astronaut Daily Check-in:** 01 Open dashboard (check mission, freshness, data quality) -> 02 Review vitals + Earth baseline (HR, BP, temperature, sleep, mood deltas) -> 03 Complete symptom survey (fatigue, symptoms, mood, notes) -> 04 Review SpaceLab + environment (biomarkers, cabin conditions, body map) -> 05 Generate integrated assessment (GREEN / YELLOW / RED + explainable evidence) -> 06 Read guidance + save mission log (crew follow-up, timestamped history)
+1. **Astronaut Daily Check-in:** 01 Open dashboard (check mission, freshness, data quality) -> 02 Review vitals + Earth baseline (HR, BP, temperature, sleep, mood deltas) -> 03 Complete symptom survey (fatigue, symptoms, mood, notes) -> 04 Review SpaceLab + environment (biomarkers, cabin conditions, body map) -> 05 Generate integrated assessment (GREEN / YELLOW / RED + explainable evidence) -> 06 Read guidance (crew follow-up; the assessment is kept in timestamped history)
 2. **Medical Review Workflow:** 01 Open flagged result (review source, timestamps, uncertainty) -> 02 Check individual baselines (vital-sign and lab trends, **not population thresholds**) -> 03 Review symptoms + context (body map, CO2, radiation if available, mission phase) -> 04 Follow approved medical protocols (document response and escalation) -> 05 **Save audit event** (record crew notes and assessment history)
-3. **System Data Flow:** Inputs (vital signs, labs, survey, environment) -> Validation + provenance (units, timestamps, source and quality checks) -> Baseline comparator (Earth versus space deltas and longitudinal trends) -> Deterministic rules engine (illustrative status and **reason codes**) -> Explanation formatter (evidence, uncertainty, environmental context) -> User interface + mission log (dashboard, guidance, body map, export)
-4. **Example assessment flow:** Vital Signs + Earth Baseline (HR, BP, temperature, sleep, mood) plus Self-Assessment + SpaceLab + Environment (symptoms, biomarkers, cabin conditions) -> Integrated Health Assessment (GREEN / YELLOW / RED, evidence-based explanation of the simulated result) -> Guidance + Mission Log (recommended follow-up and documentation)
+3. **System Data Flow:** Inputs (vital signs, labs, survey, environment) -> Validation + provenance (units, timestamps, source and quality checks) -> Baseline comparator (Earth versus space deltas and longitudinal trends) -> Deterministic rules engine (illustrative status and **reason codes**) -> Explanation formatter (evidence, uncertainty, environmental context) -> User interface + assessment history (dashboard, guidance, body map)
+4. **Example assessment flow:** Vital Signs + Earth Baseline (HR, BP, temperature, sleep, mood) plus Self-Assessment + SpaceLab + Environment (symptoms, biomarkers, cabin conditions) -> Integrated Health Assessment (GREEN / YELLOW / RED, evidence-based explanation of the simulated result) -> Guidance (recommended follow-up)
 
 **[Note]** Two details to carry into the build: the pipeline has an explicit **validation + provenance** stage before any comparison, and the rules engine outputs **reason codes** (the rule IDs in the master spec). The medical review flow saves an **audit event**, so each log entry should record who or what produced it and when.

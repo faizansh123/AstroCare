@@ -6,7 +6,7 @@ import { ENV, type EnvKey } from "../data/catalog";
 import { issuesByField } from "../lib/validate";
 import type { Ctx } from "../appTypes";
 import type { Environment } from "../types/health";
-import { Card, Icon, MeasureField, SimTag, ago, fmt, type IconName } from "./ui";
+import { Card, Icon, MeasureField, ago, fmt, type IconName } from "./ui";
 
 export function EnvironmentScreen({ ctx }: { ctx: Ctx }) {
   const { snapshot: s, live, now } = ctx;
@@ -22,22 +22,22 @@ export function EnvironmentScreen({ ctx }: { ctx: Ctx }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {kpis.map(([l, v, i]) => (
-          <div key={l} className="card p-4">
-            <p className="flex items-center gap-2 text-sm font-semibold text-fg-2"><Icon name={i} className="h-4 w-4 text-accent-2" />{l}</p>
-            <p className="num mt-1 text-2xl font-bold">{v}</p>
-            <p className="mini">Simulated mission context</p>
+      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-edge bg-card lg:grid-cols-4">
+        {kpis.map(([l, v, i], n) => (
+          <div key={l} className={`p-5 ${n % 2 ? "border-l border-white/[0.06]" : ""} ${n >= 2 ? "border-t border-white/[0.06] lg:border-t-0" : ""} ${n === 2 ? "lg:border-l" : ""}`}>
+            <p className="flex items-center gap-1.5 text-[13px] font-medium text-fg-3"><Icon name={i} className="h-4 w-4" />{l}</p>
+            <p className="num mt-1.5 text-[24px] font-semibold">{v}</p>
           </div>
         ))}
       </div>
+      <p className="mini -mt-3 px-1">Mission context.</p>
 
       {live.context.map((h) => (
-        <div key={h.id} className="callout flex gap-2"><Icon name="info" className="mt-0.5 h-4 w-4 shrink-0 text-accent-2" /><span><strong className="text-fg">Context note ({h.id}):</strong> {h.text}</span></div>
+        <div key={h.id} className="callout flex gap-2"><Icon name="info" className="mt-0.5 h-4 w-4 shrink-0 text-accent" /><span><strong className="text-fg">Context note:</strong> {h.text} <span className="text-[11px] text-fg-3">{h.id}</span></span></div>
       ))}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <Card title="Adjust simulated cabin conditions" icon="orbit" aside={<SimTag />}>
+      <div className="grid grid-cols-1 items-start gap-6 [&>*]:min-w-0 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <Card title="Adjust cabin conditions">
           <div className="grid gap-3 sm:grid-cols-2">
             {(["co2Pct", "cabinTempC", "humidityPct", "radiationMGy"] as EnvKey[]).map((k) => {
               const m = ENV[k];
@@ -59,17 +59,11 @@ export function EnvironmentScreen({ ctx }: { ctx: Ctx }) {
               <input className="input mt-1" value={s.env.phase} maxLength={60} onChange={(e) => setEnv({ phase: e.target.value })} />
             </label>
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="mini">Observed {ago(s.env.observedAt, now)}</p>
-            <button type="button" className="btn-ghost" onClick={() => ctx.addLog({ type: "environment", author: "Crew (demo)", source: "simulated",
-              text: `Environment (simulated): CO₂ ${s.env.co2Pct ?? "—"}%, cabin ${s.env.cabinTempC ?? "—"} °C, humidity ${s.env.humidityPct ?? "—"}%, ${s.env.lightCycle}${s.env.radiationMGy !== undefined ? `, radiation ${s.env.radiationMGy} mGy (manual entry)` : ""}.` })}>
-              <Icon name="plus" />Record to log
-            </button>
-          </div>
+          <p className="mini mt-3">Observed {ago(s.env.observedAt, now)}</p>
         </Card>
 
-        <Card title="How environment enters the assessment" icon="info">
-          <p className="callout">
+        <Card title="How environment enters the assessment">
+          <p className="text-[14px] text-fg-2">
             Cabin air quality, temperature, humidity, lighting, radiation exposure and altered gravity can provide important context.
             AstroCare shows these next to symptoms and vital-sign trends but <strong className="text-fg">does not infer individual causation</strong>.
           </p>
@@ -78,7 +72,7 @@ export function EnvironmentScreen({ ctx }: { ctx: Ctx }) {
             <li className="flex gap-2"><Icon name="x" className="mt-1 h-4 w-4 shrink-0 text-bad-fg" />Never changes or lowers the status.</li>
             <li className="flex gap-2"><Icon name="x" className="mt-1 h-4 w-4 shrink-0 text-bad-fg" />Never changes thresholds and is never inferred from vitals.</li>
           </ul>
-          <p className="mini mt-4">Radiation and lighting are contextual indicators, not measured live telemetry. Cabin sliders are simulated.</p>
+          <p className="mini mt-4">Radiation and lighting are contextual indicators, not measured live telemetry.</p>
         </Card>
       </div>
     </div>

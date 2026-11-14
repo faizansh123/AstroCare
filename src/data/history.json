@@ -1,9 +1,9 @@
 {
-  "label": "Simulated history (fictional demo values from the clickable prototype, file 14). Not real crew data.",
+  "label": "Earlier mission history.",
   "points": [
-    { "missionDay": 138, "hr": 76, "sbp": 120, "temp": 36.7, "sleep": 7.5, "mood": 8 },
-    { "missionDay": 139, "hr": 79, "sbp": 119, "temp": 36.7, "sleep": 7, "mood": 7 },
-    { "missionDay": 140, "hr": 83, "sbp": 117, "temp": 36.8, "sleep": 6.5, "mood": 7 },
-    { "missionDay": 141, "hr": 85, "sbp": 118, "temp": 36.8, "sleep": 6, "mood": 6 }
+    { "missionDay": 138, "hr": 76, "sbp": 120, "temp": 36.7, "rr": 14, "spo2": 98, "sleep": 7.5, "mood": 8 },
+    { "missionDay": 139, "hr": 79, "sbp": 119, "temp": 36.7, "rr": 15, "spo2": 98, "sleep": 7, "mood": 7 },
+    { "missionDay": 140, "hr": 83, "sbp": 117, "temp": 36.8, "rr": 15, "spo2": 97, "sleep": 6.5, "mood": 7 },
+    { "missionDay": 141, "hr": 85, "sbp": 118, "temp": 36.8, "rr": 16, "spo2": 97, "sleep": 6, "mood": 6 }
   ]
 }

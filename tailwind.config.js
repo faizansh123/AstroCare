@@ -1,30 +1,31 @@
 /** @type {import('tailwindcss').Config} */
-// Design tokens from the clickable prototype CSS (file 14 §5a). Status colours are reserved for status and always
-// paired with an icon and a text label (CLAUDE.md, file 07 §10).
+// Design tokens: macOS-style dark appearance (file 14 §5a, v3 visual refresh). Neutral graphite surfaces, one blue
+// accent, Apple system colours for status. Status colours are reserved for status and always paired with an icon and
+// a text label (CLAUDE.md, file 07 §10). Contrast checked: white on action 4.7:1, fg-3 on card-2 4.9:1.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        page: "#071322",
-        side: "#0a1c30",
-        card: { DEFAULT: "#10263c", 2: "#0c2033", 3: "#173c54" },
-        edge: { DEFAULT: "#25445d", strong: "#365570" },
-        fg: { DEFAULT: "#e8f3ff", 2: "#b5cbe0", 3: "#96aec7" },
-        accent: { DEFAULT: "#4be0d6", 2: "#54d4e4" },
-        action: { DEFAULT: "#246f91", hover: "#216584", 2: "#1c3e57" },
-        earth: "#4daee7",
-        space: "#b69bff",
-        ok: { bg: "#12483b", fg: "#81f1bf", line: "#2f8a6d" },
-        warn: { bg: "#54401a", fg: "#ffd581", line: "#a57c2c" },
-        bad: { bg: "#5a2334", fg: "#ffacb4", line: "#a8485e" },
-        unk: { bg: "#2a3a4d", fg: "#d3e2f2", line: "#5a7590" },
+        page: "#000000",
+        side: "#161618",
+        card: { DEFAULT: "#1c1c1e", 2: "#2c2c2e", 3: "#3a3a3c" },
+        edge: { DEFAULT: "#2a2a2d", strong: "#3a3a3c" },
+        fg: { DEFAULT: "#f5f5f7", 2: "#d1d1d6", 3: "#98989f" },
+        accent: { DEFAULT: "#409cff", 2: "#409cff" },
+        action: { DEFAULT: "#0071e3", hover: "#0062c4", 2: "#3a3a3c" },
+        earth: "#aeaeb2",
+        space: "#409cff",
+        ok: { bg: "#132a1b", fg: "#30d158", line: "#1f5c30" },
+        warn: { bg: "#2e2810", fg: "#ffd60a", line: "#6b5a12" },
+        bad: { bg: "#331817", fg: "#ff6961", line: "#7a2c28" },
+        unk: { bg: "#2a2a2e", fg: "#d1d1d6", line: "#48484a" },
       },
       fontFamily: {
-        sans: ['"Inter Variable"', "Inter", "system-ui", '"Segoe UI"', "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", '"SF Pro Text"', '"Inter Variable"', "Inter", "system-ui", '"Segoe UI"', "sans-serif"],
       },
-      keyframes: { enter: { from: { opacity: "0", transform: "translateY(4px)" }, to: { opacity: "1", transform: "none" } } },
-      animation: { enter: "enter 220ms cubic-bezier(.2,.7,.2,1) both" },
+      keyframes: { enter: { from: { opacity: "0", transform: "translateY(6px)" }, to: { opacity: "1", transform: "none" } } },
+      animation: { enter: "enter 260ms cubic-bezier(.2,.7,.2,1) both" },
     },
   },
   plugins: [],

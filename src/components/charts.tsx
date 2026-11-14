@@ -1,96 +1,104 @@
 // Charts. Every chart also has a text reading (numbers beside it or an sr-only summary).
 import {
-  CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps,
+  Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps,
 } from "recharts";
 import type { TrendKey, TrendPoint } from "../lib/store";
 
-const ACCENT = "#5fd5e4";
+export const SERIES_COLOURS = ["#409cff", "#63e6e2"] as const;
+const GRID = "#2a2a2d", AXIS = "#98989f", EARTH = "#aeaeb2";
 
-/** Tiny decorative line for indicator cards (numbers are shown as text on the card). */
-export function Sparkline({ values, baseline, className = "h-9 w-full" }: { values: (number | undefined)[]; baseline: number; className?: string }) {
-  const nums = values.filter((v): v is number => v !== undefined);
-  if (nums.length < 2) return <div className={className} />;
-  const lo = Math.min(...nums, baseline), hi = Math.max(...nums, baseline);
-  const span = hi - lo || 1;
-  const W = 120, H = 34;
-  const x = (i: number) => (i / (values.length - 1)) * W;
-  const y = (v: number) => H - 3 - ((v - lo) / span) * (H - 6);
-  let d = "";
-  values.forEach((v, i) => { if (v !== undefined) d += `${d && values[i - 1] !== undefined ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`; });
-  const lastIdx = values.length - 1 - [...values].reverse().findIndex((v) => v !== undefined);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden className={className}>
-      <line x1="0" x2={W} y1={y(baseline)} y2={y(baseline)} stroke="#4daee7" strokeOpacity="0.6" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-      <path d={d} fill="none" stroke={ACCENT} strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-      <circle cx={x(lastIdx)} cy={y(values[lastIdx]!)} r="2.6" fill="#e8f3ff" />
-    </svg>
-  );
-}
-
-/** Earth vs in-flight pair of bars (prototype "barrow"). Width relative to the larger value. */
+/** Earth vs in-flight pair of bars. Lengths compare the two readings within one metric only. */
 export function EarthSpaceBars({ earth, space, unit, digits }: { earth: number; space?: number; unit: string; digits: number }) {
-  const max = Math.max(earth, space ?? 0) * 1.12 || 1;
-  return (
-    <div className="space-y-1.5" aria-hidden>
-      <div className="flex items-center gap-2">
-        <div className="h-3 rounded bg-earth" style={{ width: `${(earth / max) * 100}%` }} />
-        <span className="num text-xs text-fg-3">{earth.toFixed(digits)} {unit}</span>
+  const max = Math.max(earth, space ?? 0) || 1;
+  const row = (v: number | undefined, cls: string) => (
+    <div className="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3">
+      <div className="h-2 rounded-full bg-card-2">
+        {v !== undefined && <div className={`h-2 rounded-full ${cls}`} style={{ width: `${(v / max) * 100}%` }} />}
       </div>
-      <div className="flex items-center gap-2">
-        {space === undefined
-          ? <span className="text-xs italic text-fg-3">not measured</span>
-          : <><div className="h-3 rounded bg-space" style={{ width: `${(space / max) * 100}%` }} /><span className="num text-xs text-fg-3">{space.toFixed(digits)} {unit}</span></>}
-      </div>
+      <span className="num whitespace-nowrap text-right text-xs text-fg-2">{v === undefined ? <em className="text-fg-3">not measured</em> : `${v.toFixed(digits)} ${unit}`}</span>
     </div>
   );
+  return <div className="space-y-1.5" aria-hidden>{row(earth, "bg-earth")}{row(space, "bg-space")}</div>;
 }
 
-const ORIGIN_TEXT = { simulated: "Simulated history (fictional)", "check-in": "Saved check-in", current: "Current reading" } as const;
+const ORIGIN_TEXT = { simulated: "Earlier history", "check-in": "Saved check-in", current: "Current reading" } as const;
 
-function ChartTip({ active, payload, metric, unit, digits }: TooltipProps<number, string> & { metric: TrendKey; unit: string; digits: number }) {
+export interface Series { key: TrendKey; name: string; baseline: number }
+
+function ChartTip({ active, payload, series, unit, digits }: TooltipProps<number, string> & { series: Series[]; unit: string; digits: number }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload as TrendPoint;
-  const v = p[metric];
   return (
-    <div className="rounded-lg border border-edge-strong bg-card px-3 py-2 text-xs shadow-xl shadow-black/50">
+    <div className="rounded-xl border border-edge-strong bg-card-2/95 px-3 py-2 text-xs shadow-2xl shadow-black/60 backdrop-blur">
       <p className="text-fg-3">Mission day {p.missionDay}</p>
-      <p className="num text-base font-semibold text-fg">{v === undefined ? "No reading" : `${v.toFixed(digits)} ${unit}`}</p>
+      {series.map((s, i) => (
+        <p key={s.key} className="num flex items-center gap-1.5 text-[14px] font-semibold text-fg">
+          {series.length > 1 && <span className="h-2 w-2 rounded-full" style={{ background: SERIES_COLOURS[i] }} />}
+          {series.length > 1 && <span className="font-normal text-fg-3">{s.name}</span>}
+          {p[s.key] === undefined ? "No reading" : `${p[s.key]!.toFixed(digits)} ${unit}`}
+        </p>
+      ))}
       <p className="text-fg-3">{ORIGIN_TEXT[p.origin]}</p>
     </div>
   );
 }
 
-export function TrendChart({ data, metric, unit, digits, baseline, annotations, height = 280 }: {
-  data: TrendPoint[]; metric: TrendKey; unit: string; digits: number; baseline: number; annotations: number[]; height?: number;
+/** Line chart for one or two series of the same unit, each with its dashed Earth baseline. */
+export function TrendChart({ data, series, unit, digits, height = 300 }: {
+  data: TrendPoint[]; series: Series[]; unit: string; digits: number; height?: number;
 }) {
-  const vals = data.map((p) => p[metric]).filter((v): v is number => v !== undefined);
-  const lo = Math.min(...vals, baseline), hi = Math.max(...vals, baseline);
+  const vals = data.flatMap((p) => series.map((s) => p[s.key])).filter((v): v is number => v !== undefined);
+  const bases = series.map((s) => s.baseline);
+  const lo = Math.min(...vals, ...bases), hi = Math.max(...vals, ...bases);
   const pad = Math.max((hi - lo) * 0.2, digits ? 0.3 : 2);
+  const gid = `fill-${series[0].key}`;
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={{ top: 16, right: 16, bottom: 4, left: 0 }}>
-          <CartesianGrid stroke="#25445d" strokeOpacity={0.5} vertical={false} />
-          {annotations.map((d) => (
-            <ReferenceLine key={d} x={d} stroke="#b69bff" strokeOpacity={0.55} strokeDasharray="2 4"
-              label={{ value: "log", position: "top", fill: "#b69bff", fontSize: 10 }} />
+        <ComposedChart data={data} margin={{ top: 16, right: 12, bottom: 4, left: 0 }}>
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={SERIES_COLOURS[0]} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={SERIES_COLOURS[0]} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke={GRID} vertical={false} />
+          {series.map((s) => (
+            <ReferenceLine key={`b-${s.key}`} y={s.baseline} stroke={EARTH} strokeOpacity={0.7} strokeDasharray="5 4"
+              label={{ value: `Earth ${s.baseline}`, position: "insideBottomLeft", fill: EARTH, fontSize: 11 }} />
           ))}
-          <ReferenceLine y={baseline} stroke="#4daee7" strokeDasharray="5 4"
-            label={{ value: `Earth ${baseline}`, position: "insideBottomLeft", fill: "#4daee7", fontSize: 11 }} />
-          <XAxis dataKey="missionDay" tickFormatter={(d: number) => `D${d}`} tick={{ fill: "#96aec7", fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#365570" }} />
-          <YAxis domain={[Math.floor((lo - pad) * 10) / 10, Math.ceil((hi + pad) * 10) / 10]} tick={{ fill: "#96aec7", fontSize: 12 }}
+          <XAxis dataKey="missionDay" tickFormatter={(d: number) => `D${d}`} tick={{ fill: AXIS, fontSize: 12 }} tickLine={false} axisLine={false} />
+          <YAxis domain={[Math.floor((lo - pad) * 10) / 10, Math.ceil((hi + pad) * 10) / 10]} tick={{ fill: AXIS, fontSize: 12 }}
             tickLine={false} axisLine={false} width={44} tickFormatter={(v: number) => v.toFixed(digits)} />
-          <Tooltip content={<ChartTip metric={metric} unit={unit} digits={digits} />} cursor={{ stroke: "#365570" }} />
-          <Line type="monotone" dataKey={metric} stroke={ACCENT} strokeWidth={2.5} connectNulls={false} isAnimationActive={false}
-            dot={(p: { cx?: number; cy?: number; payload?: TrendPoint; index?: number }) => {
-              const { cx, cy, payload, index } = p;
-              if (cx === undefined || cy === undefined || payload?.[metric] === undefined) return <g key={index} />;
-              return payload.origin === "simulated"
-                ? <circle key={index} cx={cx} cy={cy} r={4} fill={ACCENT} />
-                : <rect key={index} x={cx - 5} y={cy - 5} width={10} height={10} transform={`rotate(45 ${cx} ${cy})`} fill="#e8f3ff" stroke="#071322" strokeWidth={2} />;
-            }} />
+          <Tooltip content={<ChartTip series={series} unit={unit} digits={digits} />} cursor={{ stroke: "#48484a" }} />
+          {series.length === 1 && (
+            <Area type="monotone" dataKey={series[0].key} stroke="none" fill={`url(#${gid})`} connectNulls={false} isAnimationActive={false} />
+          )}
+          {series.map((s, i) => (
+            <Line key={s.key} type="monotone" dataKey={s.key} stroke={SERIES_COLOURS[i]} strokeWidth={2.5} connectNulls={false} isAnimationActive={false}
+              dot={(p: { cx?: number; cy?: number; payload?: TrendPoint; index?: number }) => {
+                const { cx, cy, payload, index } = p;
+                if (cx === undefined || cy === undefined || payload?.[s.key] === undefined) return <g key={index} />;
+                return payload.origin === "simulated"
+                  ? <circle key={index} cx={cx} cy={cy} r={3} fill={SERIES_COLOURS[i]} />
+                  : <rect key={index} x={cx - 5} y={cy - 5} width={10} height={10} transform={`rotate(45 ${cx} ${cy})`} fill="#f5f5f7" stroke="#000" strokeWidth={2} />;
+              }} />
+          ))}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
+  );
+}
+
+/** Shared legend: shape + text, never colour alone. */
+export function TrendLegend({ series }: { series: Series[] }) {
+  return (
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-3">
+      {series.map((s, i) => (
+        <li key={s.key} className="flex items-center gap-1.5"><span className="h-0.5 w-4 rounded" style={{ background: SERIES_COLOURS[i] }} />{s.name}</li>
+      ))}
+      <li className="flex items-center gap-1.5"><span className="h-2 w-2 rotate-45 bg-fg" />Saved check-in or current</li>
+      <li className="flex items-center gap-1.5"><span className="h-0 w-4 border-t-2 border-dashed border-earth" />Earth baseline</li>
+    </ul>
   );
 }

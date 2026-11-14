@@ -1,8 +1,8 @@
 {
   "rulesVersion": "demo-rules-2.0.0",
-  "label": "Illustrative demonstration rules. Not validated flight medicine. Configurable in src/data/rules.json (file 07 §7, D5).",
+  "label": "Illustrative demonstration rules. Not validated flight medicine. Configurable in src/data/rules.json.",
   "staleLimitHours": 24,
-  "staleLimitNote": "Placeholder stale-data limit (file 11, still open 6).",
+  "staleLimitNote": "Placeholder stale-data limit.",
   "required": ["vitals.hr", "vitals.sbp", "vitals.dbp", "vitals.temp", "vitals.sleep", "vitals.mood", "survey.fatigue", "survey.symptoms"],
   "plausibility": {
     "vitals.hr": [25, 250],

@@ -2,7 +2,7 @@
 // explanation sentences must cite (file 07 §8: "every sentence must reference an input field").
 import type { SymptomId } from "../types/health";
 
-export type VitalKey = "hr" | "sbp" | "dbp" | "temp" | "sleep" | "mood";
+export type VitalKey = "hr" | "sbp" | "dbp" | "temp" | "rr" | "spo2" | "sleep" | "mood";
 export type LabKey = "hemoglobin" | "wbc" | "glucose" | "calcium";
 export type EnvKey = "co2Pct" | "cabinTempC" | "humidityPct" | "radiationMGy";
 
@@ -14,6 +14,9 @@ export const VITALS: Record<VitalKey, FieldMeta> = {
   sbp: { ref: "vitals.sbp", label: "Systolic BP", short: "SBP", unit: "mmHg", digits: 0, min: 85, max: 165, step: 1 },
   dbp: { ref: "vitals.dbp", label: "Diastolic BP", short: "DBP", unit: "mmHg", digits: 0, min: 50, max: 110, step: 1 },
   temp: { ref: "vitals.temp", label: "Body temperature", short: "Temp", unit: "°C", digits: 1, min: 35, max: 39, step: 0.1 },
+  // Respiratory rate and SpO2 (D26): display and trend only. No rules thresholds; input ranges are illustrative.
+  rr: { ref: "vitals.rr", label: "Respiratory rate", short: "RR", unit: "/min", digits: 0, min: 6, max: 40, step: 1 },
+  spo2: { ref: "vitals.spo2", label: "SpO₂", short: "SpO₂", unit: "%", digits: 0, min: 80, max: 100, step: 1 },
   sleep: { ref: "vitals.sleep", label: "Sleep (last night)", short: "Sleep", unit: "h", digits: 1, min: 0, max: 12, step: 0.5 },
   mood: { ref: "vitals.mood", label: "Mood", short: "Mood", unit: "/10", digits: 0, min: 1, max: 10, step: 1 },
 };
@@ -66,7 +69,7 @@ export const SYMPTOMS: Record<SymptomId, { label: string; region: RegionId }> = 
   dizziness: { label: "Dizziness", region: "brain" },
   nausea: { label: "Nausea", region: "brain" },
   difficulty_concentrating: { label: "Difficulty concentrating", region: "brain" },
-  severe_breathing_difficulty: { label: "Severe breathing difficulty", region: "lungs" },
+  severe_breathing_difficulty: { label: "Difficulty breathing / shortness of breath", region: "lungs" },
 };
 export const SYMPTOM_IDS = Object.keys(SYMPTOMS) as SymptomId[];
 
@@ -80,6 +83,7 @@ export const FIELD_REFS: Record<string, string> = {
   "survey.fatigue": "Fatigue",
   "survey.symptoms": "Symptoms",
   "survey.notes": "Notes",
+  "survey.otherSymptoms": "Other symptoms",
   "labs.collectedAt": "Specimen time",
   "env.lightCycle": "Light cycle",
   "env.phase": "Mission phase",

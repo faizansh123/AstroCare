@@ -28,17 +28,17 @@ export function templateExplanation(a: Assessment, s: Snapshot): AiExplanation {
       e.cabinTempC !== undefined && `temperature ${e.cabinTempC} °C`,
       e.humidityPct !== undefined && `humidity ${e.humidityPct}%`,
     ].filter(Boolean);
-    context.push({ text: `Environment (simulated): ${parts.join(", ")}. Context only, not a cause.`, refs: ["env.co2Pct", "env.cabinTempC", "env.humidityPct"] });
+    context.push({ text: `Environment: ${parts.join(", ")}. Context only, not a cause.`, refs: ["env.co2Pct", "env.cabinTempC", "env.humidityPct"] });
   }
   if (a.deltas.some((d) => d.ref.startsWith("labs."))) {
-    context.push({ text: "SpaceLab values are simulated observations. A change from baseline is not a diagnosis.", refs: ["labs.hemoglobin", "guide.lab-immune"] });
+    context.push({ text: "SpaceLab values are observations. A change from baseline is not a diagnosis.", refs: ["labs.hemoglobin", "guide.lab-immune"] });
   }
 
   const missing: AiItem[] = a.dataIssues.map((i) => ({ text: i.message, refs: [i.field] }));
   if (a.dataAgeHours !== null) {
     missing.push({ text: `Vital signs were taken ${a.dataAgeHours < 1 ? "less than 1 hour" : `${Math.floor(a.dataAgeHours)} h`} ago.`, refs: ["data.age"] });
   }
-  if (s.labs.collectedAt) missing.push({ text: "Lab values come from the last simulated specimen, not a live feed.", refs: ["labs.collectedAt"] });
+  if (s.labs.collectedAt) missing.push({ text: "Lab values come from the last specimen, not a live feed.", refs: ["labs.collectedAt"] });
 
   const verify: AiItem[] = {
     RED: [

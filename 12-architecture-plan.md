@@ -9,7 +9,7 @@ Status: implemented in `src/` and `server/` (14 Nov 2026). Updated for the v2 pl
 3. A local **rules engine** computes deltas and the status (GREEN, YELLOW, RED, INSUFFICIENT DATA)
 4. The app sends the structured record plus the rules result to a **serverless proxy**, which calls the **Gemini API**
 5. Gemini returns a structured explanation. The app **checks it**, then **displays** it
-6. Everything is saved to the **mission log** (localStorage), exportable as JSON
+6. The assessment, its inputs and the explanation shown are saved to **assessment history** (localStorage). The mission log was removed (D25)
 
 ## 2. Stack (decided)
 
@@ -18,7 +18,7 @@ Status: implemented in `src/` and `server/` (14 Nov 2026). Updated for the v2 pl
 - Recharts for charts
 - Vercel: static app plus one serverless function for Gemini
 - Gemini API for the explanation step
-- localStorage plus JSON export/import (no backend database)
+- localStorage (no backend database)
 
 ## 3. Why the rules decide and Gemini explains
 

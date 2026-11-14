@@ -10,9 +10,9 @@ export function defaultSnapshot(now = Date.now()): Snapshot {
   return {
     missionDay: mission.mission.day,
     source: "simulated",
-    vitals: { hr: 88, sbp: 116, dbp: 74, temp: 36.8, sleep: 5.5, mood: 6, posture: "seated", tempSite: "oral", measuredAt: iso(now, 0.5) },
+    vitals: { hr: 88, sbp: 116, dbp: 74, temp: 36.8, rr: 16, spo2: 97, sleep: 5.5, mood: 6, posture: "seated", tempSite: "oral", measuredAt: iso(now, 0.5) },
     survey: { fatigue: 6, symptomsAnswer: "reported", symptoms: [{ id: "fatigue", severity: "mild" }], notes: "" },
-    labs: { hemoglobin: 137, wbc: 5.8, glucose: 5.1, glucoseUnit: "mmol/L", calcium: 2.29, specimen: "Blood (simulated)", collectedAt: iso(now, 20) },
+    labs: { hemoglobin: 137, wbc: 5.8, glucose: 5.1, glucoseUnit: "mmol/L", calcium: 2.29, specimen: "Blood", collectedAt: iso(now, 20) },
     env: { co2Pct: 0.45, cabinTempC: 24, humidityPct: 38, lightCycle: "Day shift lighting", phase: mission.mission.phase, observedAt: iso(now, 0.2) },
   };
 }
@@ -24,7 +24,7 @@ export const SCENARIOS: Scenario[] = [
     id: "normal", label: "Normal day", description: "Small changes, no symptoms",
     build: (now = Date.now()) => {
       const s = defaultSnapshot(now);
-      s.vitals = { ...s.vitals, hr: 76, sbp: 118, dbp: 78, temp: 36.7, sleep: 7.5, mood: 7 };
+      s.vitals = { ...s.vitals, hr: 76, sbp: 118, dbp: 78, temp: 36.7, rr: 14, spo2: 98, sleep: 7.5, mood: 7 };
       s.survey = { fatigue: 3, symptomsAnswer: "none", symptoms: [], notes: "" };
       s.labs = { ...s.labs, hemoglobin: 141 };
       return s;

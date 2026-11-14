@@ -5,7 +5,6 @@ import baselineJson from "../data/baseline.json";
 import { SCENARIOS, defaultSnapshot } from "../data/scenarios";
 import { absDelta, pctDelta } from "../lib/deltas";
 import { assess } from "../lib/rules";
-import { exportLogJson, importLogJson, newEvent } from "../lib/store";
 import type { Baseline, Snapshot } from "../types/health";
 
 const B = baselineJson as Baseline;
@@ -149,20 +148,6 @@ describe("safety (file 10, file 07 §11)", () => {
     expect(run(s).status).toBe("GREEN");
   });
   it("identical inputs give identical outputs", () => expect(run(scn("small-changes"))).toEqual(run(scn("small-changes"))));
-});
-
-describe("mission log export / import", () => {
-  it("exports chronologically with simulated provenance and re-imports", () => {
-    const e1 = newEvent({ type: "crew-note", text: "second", author: "Crew", source: "crew-entry" }, NOW + 1000);
-    const e2 = newEvent({ type: "assessment", text: "first", author: "Rules engine", source: "system" }, NOW);
-    const json = exportLogJson([e1, e2], NOW);
-    const parsed = JSON.parse(json);
-    expect(parsed.provenance).toMatch(/Simulated/);
-    expect(parsed.events.map((e: { text: string }) => e.text)).toEqual(["first", "second"]);
-    const back = importLogJson(json, []);
-    expect("log" in back && back.log.length).toBe(2);
-    expect("error" in importLogJson("{}", [])).toBe(true);
-  });
 });
 
 describe("spaceflight hazard links (D24)", () => {

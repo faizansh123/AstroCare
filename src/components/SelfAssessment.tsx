@@ -8,7 +8,6 @@ import { assess } from "../lib/rules";
 import { issuesByField } from "../lib/validate";
 import type { Ctx } from "../appTypes";
 import type { Severity, Snapshot, SymptomId, Vitals } from "../types/health";
-import { StatusBanner } from "./StatusBadge";
 import { Card, Icon, MeasureField, ago, type IconName } from "./ui";
 
 const STEPS = ["Symptoms", "Measurements", "Lifestyle", "Review"] as const;
@@ -30,19 +29,17 @@ const MOOD_PICKS: [string, number][] = [["Very good", 10], ["Good", 8], ["Neutra
 
 function Question({ icon, title, children }: { icon: IconName; title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="well">
+    <fieldset className="min-w-0 border-t border-white/[0.06] pt-5 first:border-t-0 first:pt-0">
       <legend className="sr-only">{title}</legend>
-      <div className="flex gap-3">
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card-3"><Icon name={icon} className="h-5 w-5 text-accent-2" /></span>
-        <div className="min-w-0 flex-1"><p aria-hidden className="mb-2 font-semibold text-fg">{title}</p>{children}</div>
-      </div>
+      <p aria-hidden className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-fg"><Icon name={icon} className="h-[18px] w-[18px] text-accent" />{title}</p>
+      {children}
     </fieldset>
   );
 }
 
 function Picks({ picks, value, onPick, label }: { picks: [string, number][]; value?: number; onPick: (v: number) => void; label: string }) {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={`${label} quick picks`}>
+    <div className="seg-group" role="group" aria-label={`${label} quick picks`}>
       {picks.map(([l, v]) => <button key={l} type="button" className="seg" aria-pressed={value === v} onClick={() => onPick(v)}>{l}</button>)}
     </div>
   );
@@ -87,15 +84,13 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
 
   const calculate = () => {
     const final: Snapshot = { ...d, survey: { ...d.survey, submittedAt: new Date().toISOString() } };
-    ctx.addLog({ type: "self-assessment", author: "Crew (demo)", source: "crew-entry",
-      text: `Daily check-in saved. Symptoms: ${preview.symptoms.join(", ") || (d.survey.symptomsAnswer === "none" ? "none" : "not answered")}; fatigue ${d.survey.fatigue ?? "—"}/10; mood ${d.vitals.mood ?? "—"}/10; sleep ${d.vitals.sleep ?? "—"} h.${d.survey.notes ? ` Notes: ${d.survey.notes}` : ""}` });
     ctx.runAssessment(final);
   };
 
   return (
     <div className="space-y-5">
       {/* Stepper */}
-      <ol className="card flex items-center gap-2 overflow-x-auto p-4" aria-label="Progress">
+      <ol className="flex items-center gap-2 rounded-2xl border border-edge bg-card px-3 py-3 sm:px-5" aria-label="Progress">
         {STEPS.map((label, i) => {
           const needsAttention = i < 3 && preview.dataIssues.some((issue) => STEP_FIELDS[i].includes(issue.field));
           const complete = i < 3 && visited.includes(i) && !needsAttention;
@@ -105,12 +100,12 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
             <button type="button" onClick={() => navigate(i)} aria-current={step === i ? "step" : undefined}
               className="flex shrink-0 flex-col items-center gap-1 sm:flex-row sm:gap-2">
               <span className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-bold ${
-                step === i ? "border-accent bg-action text-white" : needsAttention ? "border-unk-line text-unk-fg" : complete ? "border-accent/60 bg-card-3 text-accent" : "border-edge-strong text-fg-3"}`}>
+                step === i ? "border-action bg-action text-white" : needsAttention ? "border-unk-line text-unk-fg" : complete ? "border-transparent bg-card-3 text-accent" : "border-edge-strong text-fg-3"}`}>
                 {complete ? <Icon name="check" className="h-4 w-4" strokeWidth={2.6} /> : needsAttention ? <Icon name="alert" className="h-4 w-4" /> : i + 1}
               </span>
-              <span className={`text-sm ${step === i ? "font-semibold text-accent" : "text-fg-3"}`}>{label}<span className="block text-xs font-normal">{step === i ? `Current · ${state}` : state}</span></span>
+              <span className={`text-[13px] sm:text-sm ${step === i ? "font-semibold text-fg" : "text-fg-3"}`}>{label}<span className="sr-only"> · {step === i ? `Current · ${state}` : state}</span><span aria-hidden className="hidden text-xs font-normal text-fg-3 md:block">{state}</span></span>
             </button>
-            {i < STEPS.length - 1 && <span aria-hidden className={`h-0.5 min-w-[16px] flex-1 rounded ${complete ? "bg-accent/60" : "bg-edge"}`} />}
+            {i < STEPS.length - 1 && <span aria-hidden className={`h-px min-w-[8px] flex-1 ${complete ? "bg-accent/60" : "bg-edge-strong"}`} />}
           </li>
         );})}
       </ol>
@@ -118,9 +113,9 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
       <div ref={content}>
 
       {step === 0 && (
-        <Card title="Step 1 · Symptoms and feelings" icon="clipboard">
-          <p className="mini mb-4">Tell us how you are feeling today. This helps identify changes that need attention.</p>
-          <div className="space-y-3">
+        <Card title="Step 1 · Symptoms and feelings">
+          <p className="mini -mt-2 mb-5">Tell us how you are feeling today. This helps identify changes that need attention.</p>
+          <div className="space-y-5">
             <Question icon="moon" title="How long did you sleep last night?">
               <Picks label="Sleep" picks={SLEEP_PICKS} value={d.vitals.sleep} onPick={(v) => setVital("sleep", v)} />
               <div className="mt-3 max-w-md"><MeasureField id="sa-sleep" label="Sleep (hours, saved as a number)" unit="h" value={d.vitals.sleep}
@@ -138,8 +133,8 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
                 hint="1 = very low, 10 = very good. Same scale as your preflight baseline." /></div>
             </Question>
             <Question icon="body" title="Are you experiencing any of the following?">
-              <label className="mb-2 flex items-center gap-2 text-sm">
-                <input id="sa-symptoms" type="checkbox" className="h-4 w-4 accent-[#46c9c2]" checked={d.survey.symptomsAnswer === "none"}
+              <label className="mb-3 flex min-h-[36px] cursor-pointer items-center gap-2 text-sm">
+                <input id="sa-symptoms" type="checkbox" className="h-4 w-4 accent-[#0a84ff]" checked={d.survey.symptomsAnswer === "none"}
                   onChange={(e) => setSurvey(e.target.checked ? { symptomsAnswer: "none", symptoms: [] } : { symptomsAnswer: "unanswered" })} />
                 None of these
               </label>
@@ -148,16 +143,16 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
                   const cur = d.survey.symptoms.find((y) => y.id === id);
                   const isTrigger = rules.trainingTriggers.includes(id);
                   return (
-                    <li key={id} className={`rounded-lg border px-3 py-2 ${cur ? "border-accent/50 bg-card-3/50" : "border-edge"}`}>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" className="h-4 w-4 accent-[#46c9c2]" checked={!!cur} onChange={(e) => toggleSymptom(id, e.target.checked)} />
+                    <li key={id} className={`rounded-xl px-3 py-2 transition-colors ${cur ? "bg-card-3/70 ring-1 ring-accent/50" : "bg-card-2/70"}`}>
+                      <label className="flex min-h-[32px] cursor-pointer items-center gap-2 text-sm">
+                        <input type="checkbox" className="h-4 w-4 accent-[#0a84ff]" checked={!!cur} onChange={(e) => toggleSymptom(id, e.target.checked)} />
                         {SYMPTOMS[id].label}
-                        {isTrigger && <span className="chip bg-bad-bg/70 text-[10px] text-bad-fg">Training trigger</span>}
+                        {isTrigger && <span className="chip ml-auto bg-bad-bg text-[11px] text-bad-fg">Training trigger</span>}
                       </label>
                       {cur && (
-                        <div className="mt-2 flex gap-1" role="group" aria-label={`${SYMPTOMS[id].label} severity`}>
+                        <div className="seg-group mt-2" role="group" aria-label={`${SYMPTOMS[id].label} severity`}>
                           {(["mild", "moderate", "severe"] as Severity[]).map((sev) => (
-                            <button key={sev} type="button" className="seg min-h-[32px] px-2 text-xs capitalize" aria-pressed={cur.severity === sev} onClick={() => setSeverity(id, sev)}>{sev}</button>
+                            <button key={sev} type="button" className="seg min-h-[32px] px-2.5 text-xs capitalize" aria-pressed={cur.severity === sev} onClick={() => setSeverity(id, sev)}>{sev}</button>
                           ))}
                         </div>
                       )}
@@ -165,6 +160,10 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
                   );
                 })}
               </ul>
+              <label htmlFor="sa-other-symptoms" className="mt-4 block text-sm font-semibold">Any other symptoms?</label>
+              <textarea id="sa-other-symptoms" className="input mt-1 min-h-[72px]" maxLength={300} value={d.survey.otherSymptoms ?? ""}
+                placeholder="Describe anything not listed above" onChange={(e) => setSurvey({ otherSymptoms: e.target.value })} />
+              <p className="mini mt-1 flex justify-between gap-3"><span>Shown with your results and to the crew medical officer. The rules do not read this text, so tick a box above if one fits.</span><span className="shrink-0">{(d.survey.otherSymptoms ?? "").length}/300</span></p>
               {errors["survey.symptoms"] && <p className="mt-2 text-[13px] text-bad-fg">{errors["survey.symptoms"]}</p>}
               <p className="mini mt-2">Any symptom is always shown in your results, even if every number looks normal.</p>
             </Question>
@@ -173,13 +172,13 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
       )}
 
       {step === 1 && (
-        <Card title="Step 2 · Measurements" icon="heart">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-edge bg-card-2 px-3 py-2">
+        <Card title="Step 2 · Measurements">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-card-2/70 px-4 py-2">
             <p className="mini flex items-center gap-1.5"><Icon name="clock" className="h-4 w-4" />Readings taken {ago(d.vitals.measuredAt, now)}{errors["data.age"] ? ` · ${errors["data.age"]}` : ""}</p>
             <button id="sa-remeasure" type="button" className="btn-ghost min-h-[34px] text-xs" onClick={() => setD((x) => ({ ...x, vitals: { ...x.vitals, measuredAt: new Date().toISOString() } }))}>I just re-measured these</button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {(["hr", "sbp", "dbp", "temp"] as VitalKey[]).map((k) => {
+            {(["hr", "sbp", "dbp", "temp", "rr", "spo2"] as VitalKey[]).map((k) => {
               const m = VITALS[k];
               return <MeasureField key={k} id={`sa-${k}`} label={m.label} unit={m.unit} value={d.vitals[k]} min={m.min} max={m.max} step={m.step}
                 onChange={(v) => setVital(k, v)} error={errors[m.ref]} hint={`Earth baseline ${ctx.baseline.vitals[k]} ${m.unit}`} />;
@@ -202,7 +201,7 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
       )}
 
       {step === 2 && (
-        <Card title="Step 3 · Lifestyle and environment" icon="orbit">
+        <Card title="Step 3 · Lifestyle and environment">
           <div className="grid gap-3 sm:grid-cols-3">
             {(["co2Pct", "cabinTempC", "humidityPct"] as const).map((k) => {
               const m = ENV[k];
@@ -219,18 +218,16 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
       )}
 
       {step === 3 && (
-        <Card title="Step 4 · Review" icon="check">
-          <StatusBanner status={preview.status} compact>
-            <p className="mini mt-1">Preview from the local rules. Calculate to save it, log it and get the explanation.</p>
-          </StatusBanner>
+        <Card title="Step 4 · Review">
+          <p className="mini -mt-2">Check your answers below. Saving runs the local rules, saves the result to your assessment history and adds the explanation.</p>
           {preview.dataIssues.length > 0 && (
-            <div className="mt-4 rounded-xl border border-unk-line bg-unk-bg/40 p-4">
+            <div className="mt-4 rounded-xl bg-unk-bg p-4">
               <p className="flex items-center gap-2 font-semibold text-unk-fg"><Icon name="help" className="h-4 w-4" />Missing, invalid or stale</p>
               <ul className="mt-2 space-y-1 text-sm">
                 {preview.dataIssues.map((issue, n) => {
                   const owner = STEP_FIELDS.findIndex((fields) => fields.includes(issue.field));
                   const target = FIELD_TARGETS[issue.field];
-                  return <li key={n} className="flex gap-2"><span className="font-mono text-xs text-fg-3">{issue.id}</span>
+                  return <li key={n} className="flex gap-2">
                     {owner >= 0 && target
                       ? <a className="text-accent underline" href={`#${target}`} onClick={(event) => { event.preventDefault(); navigate(owner, target); }}>{issue.message}</a>
                       : <span>{issue.message} <span className="text-fg-3">Review in {issue.field.startsWith("labs.") ? "SpaceLab" : "Environment"}.</span></span>}
@@ -245,9 +242,12 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
               ["Fatigue", d.survey.fatigue !== undefined ? `${d.survey.fatigue}/10 (${fatigueBand(d.survey.fatigue)})` : "—"],
               ["Mood", d.vitals.mood !== undefined ? `${d.vitals.mood}/10 (${moodBand(d.vitals.mood)})` : "—"],
               ["Symptoms", preview.symptoms.join(", ") || (d.survey.symptomsAnswer === "none" ? "None" : "Not answered")],
+              ["Other symptoms", d.survey.otherSymptoms?.trim() || "—"],
               ["Heart rate", d.vitals.hr !== undefined ? `${d.vitals.hr} bpm` : "—"],
               ["Blood pressure", `${d.vitals.sbp ?? "—"}/${d.vitals.dbp ?? "—"} mmHg (${d.vitals.posture})`],
               ["Temperature", d.vitals.temp !== undefined ? `${d.vitals.temp} °C (${d.vitals.tempSite})` : "—"],
+              ["Respiratory rate", d.vitals.rr !== undefined ? `${d.vitals.rr} /min` : "—"],
+              ["SpO₂", d.vitals.spo2 !== undefined ? `${d.vitals.spo2}%` : "—"],
               ["Cabin", `CO₂ ${d.env.co2Pct ?? "—"}%, ${d.env.cabinTempC ?? "—"} °C, ${d.env.humidityPct ?? "—"}% RH`],
             ].map(([k, v]) => <div key={k} className="flex justify-between gap-3 border-b border-edge/60 py-1.5"><dt className="text-fg-3">{k}</dt><dd className="num text-right text-fg">{v}</dd></div>)}
           </dl>

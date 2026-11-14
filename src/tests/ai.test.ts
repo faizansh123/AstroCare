@@ -5,7 +5,7 @@ import { SCENARIOS } from "../data/scenarios";
 import { guardAiReply } from "../lib/aiGuard";
 import { templateExplanation } from "../lib/explainTemplate";
 import { assess } from "../lib/rules";
-import { buildUserPrompt } from "../prompts/explain.v4";
+import { buildUserPrompt } from "../prompts/explain.v5";
 import { explain, resetRateLimit, type GenerateFn } from "../../server/explain";
 import type { AiExplanation, Baseline } from "../types/health";
 
@@ -33,7 +33,7 @@ describe("AI response check", () => {
   it("accepts a grounded reply", () => expect(guardAiReply(reply(), a, s)).toEqual({ ok: true, ai: reply() }));
   it("status never changes because of AI text", () => expect(guardAiReply(reply("GREEN"), a, s).ok).toBe(false));
   it("discards an unknown field reference", () => {
-    const r = reply(); r.observedEvidence[0].refs = ["vitals.spo2"];
+    const r = reply(); r.observedEvidence[0].refs = ["vitals.hrv"];
     expect(guardAiReply(r, a, s)).toMatchObject({ ok: false, reason: expect.stringMatching(/unknown reference/) });
   });
   it("discards a rule ref that did not fire", () => {
@@ -69,13 +69,46 @@ describe("AI response check", () => {
   });
 });
 
+describe("AI guidance (D28)", () => {
+  const guide = (first = "Repeat the heart rate reading in the same posture tomorrow morning.") => ({
+    forYouNow: [{ text: first, refs: ["rules.YEL-HR", "vitals.hr"] }],
+    prevention: [{ text: "Keep a consistent sleep window as the mission plan allows.", refs: ["vitals.sleep"] }],
+    measurement: [{ text: "Measure at the same time of day and with the same device.", refs: ["vitals.hr"] }],
+  });
+  it("accepts grounded guidance", () => {
+    const { s, a } = ctx("small-changes");
+    expect(guardAiReply({ ...reply(), guidance: guide() }, a, s).ok).toBe(true);
+  });
+  it("still accepts an older reply without guidance", () => {
+    const { s, a } = ctx("small-changes");
+    expect(guardAiReply(reply(), a, s).ok).toBe(true);
+  });
+  it.each([
+    ["medication", "Take a sleep medication tonight."],
+    ["invented number", "Aim for 12 hours of sleep."],
+    ["outside citation", "Studies show this works, see www.example.org."],
+    ["diagnosis", "You have insomnia."],
+  ])("discards guidance with %s", (_, text) => {
+    const { s, a } = ctx("small-changes");
+    expect(guardAiReply({ ...reply(), guidance: guide(text) }, a, s).ok).toBe(false);
+  });
+  it("RED guidance must lead with the protocol", () => {
+    const { s, a } = ctx("breathing");
+    expect(a.status).toBe("RED");
+    const base = templateExplanation(a, s);
+    expect(guardAiReply({ ...base, guidance: { ...guide("Rest and recheck later."), forYouNow: [{ text: "Rest and recheck later.", refs: ["rules.result"] }] } }, a, s).ok).toBe(false);
+    expect(guardAiReply({ ...base, guidance: { ...guide(), forYouNow: [{ text: "Follow the approved crew emergency protocol and contact the medical officer now.", refs: ["rules.result"] }] } }, a, s).ok).toBe(true);
+  });
+});
+
 describe("prompt", () => {
   it("sends no names or identifiers and pins the status", () => {
     const { s, a } = ctx("small-changes");
     const p = buildUserPrompt({ snapshot: s, assessment: a });
     expect(p).not.toMatch(/Alex|Morgan|AM-01/);
     expect(p).toContain('statusEcho must be "YELLOW"');
-    expect(p).toContain("guide.escalation");
+    expect(p).not.toContain("APPROVED_GUIDANCE"); // D28: the hand-written library is not sent to the model
+    expect(p).not.toContain("guide.");
   });
 });
 

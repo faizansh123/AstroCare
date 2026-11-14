@@ -1,6 +1,6 @@
 // Local deterministic rules engine (file 07 §7, D4-D7). Pure: (snapshot, baseline, now) -> Assessment.
 // Evaluation order: validate -> training triggers (RED) -> missing/invalid/stale (INSUFFICIENT_DATA) -> YELLOW -> GREEN.
-// Environment and log events are context only: they never change the status and never state a cause.
+// Environment data is context only: they never change the status and never state a cause.
 // No LLM is involved. Gemini only explains the result afterwards.
 import rules from "../data/rules.json";
 import { SYMPTOMS } from "../data/catalog";
@@ -12,7 +12,7 @@ import { linkHazards } from "./hazards";
 export const RULES_VERSION = rules.rulesVersion;
 
 export const LIMITATIONS = [
-  "Simulated data. Not for clinical use.",
+  "Not for clinical use.",
   "Thresholds are illustrative demonstration rules, not validated flight medicine.",
   "Lab values show change from baseline only. They do not diagnose anything.",
   "Environment is context only. It never changes the status and is not treated as a cause.",
@@ -32,7 +32,7 @@ export function assess(s: Snapshot, b: Baseline, now = Date.now()): Assessment {
   for (const sym of s.survey.symptoms) {
     if (triggers.has(sym.id)) {
       fired.push({ id: "RED-TRAIN-BREATHING", level: "RED", refs: ["survey.symptoms"],
-        text: `${SYMPTOMS[sym.id].label} selected. RED training scenario (simulation only).` });
+        text: `${SYMPTOMS[sym.id].label} selected. RED training scenario.` });
     }
   }
 
@@ -63,7 +63,7 @@ export function assess(s: Snapshot, b: Baseline, now = Date.now()): Assessment {
   const hbPct = typeof hb === "number" ? pctDelta(hb, b.labs.hemoglobin) : null;
   if (hbPct !== null && ok("labs.hemoglobin") && Math.abs(hbPct) >= Y.hemoglobinPctAtLeast) {
     fired.push({ id: "YEL-HEMOGLOBIN", level: "YELLOW", refs: ["labs.hemoglobin"],
-      text: `Simulated hemoglobin ${hb} g/L differs from the ${b.labs.hemoglobin} g/L baseline by ${signed(hbPct, 1)}% (review trigger: ${Y.hemoglobinPctAtLeast}%). A trend, not a diagnosis.` });
+      text: `Hemoglobin ${hb} g/L differs from the ${b.labs.hemoglobin} g/L baseline by ${signed(hbPct, 1)}% (review trigger: ${Y.hemoglobinPctAtLeast}%). A trend, not a diagnosis.` });
   }
 
   // Context only. Never changes the status.

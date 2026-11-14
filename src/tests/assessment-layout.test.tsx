@@ -16,8 +16,8 @@ function context(id: string): Ctx {
   const assessment = assess(snapshot, baseline, now);
   return {
     now, snapshot, assessedSnapshot: snapshot, baseline, assessment, live: assessment,
-    ai: { loading: false, outcome: null }, log: [], updateSnapshot() {},
-    runAssessment() {}, addLog() {}, replaceLog() {}, loadScenario() {}, go() {},
+    ai: { loading: false, outcome: null }, history: [], updateSnapshot() {},
+    runAssessment() {}, loadScenario() {}, go() {},
   };
 }
 
@@ -94,7 +94,7 @@ describe("Assessment #26 content preservation", () => {
       expect(disclosure.summary).toContain(`(${items.length})`);
       for (const item of items) {
         expect(disclosure.body).toContain(escaped(item.text));
-        expect(disclosure.body).toContain('aria-label="Based on"');
+        expect(disclosure.body).not.toContain(">Sources<");
       }
     }
     if (gemini) {
@@ -108,7 +108,7 @@ describe("Assessment #26 content preservation", () => {
     for (const limitation of ctx.assessment!.limitations) expect(initial).toContain(escaped(limitation));
   });
 
-  it("keeps reordered Gemini statements with their referenced hazard and retains unmatched statements/citations", () => {
+  it("keeps reordered Gemini statements with their referenced hazard and retains unmatched statements", () => {
     const ctx = context("small-changes");
     const ai = templateExplanation(ctx.assessment!, ctx.assessedSnapshot!);
     ai.spaceHazards = ai.spaceHazards.reverse();
@@ -123,11 +123,11 @@ describe("Assessment #26 content preservation", () => {
         const name = ctx.assessment!.hazards.find((h) => `hazard.${h.id}` === hazardRef)!.name;
         const row = detailsIn(html).find((d) => d.summary.startsWith("Supporting detail") && d.summary.includes(escaped(name)))!.body;
         expect(row).toContain(escaped(item.text));
-        expect(row).toContain(hazardRef);
+        expect(row).not.toContain(">Sources<"); // hazard statements show no Sources disclosure
       }
     }
     expect(html).toContain("additional hazard statements (not causes)");
-    expect(html).toContain('aria-label="Based on"');
+    expect(html).not.toContain("hazard-links-0.1");
   });
 });
 
@@ -154,20 +154,48 @@ describe("Assessment #27 provenance presentation", () => {
         expect(d.body).toContain(state === "success" ? "passed response check" : "Test validation failure");
       }
     }
+    // No statement shows a Sources disclosure.
+    for (const item of explanation.spaceHazards) expect(html).toContain(escaped(item.text));
     for (const item of [...explanation.observedEvidence, ...explanation.baselineComparison,
       ...explanation.contextualFactors, ...explanation.missingOrUncertain,
-      ...explanation.recommendedVerification, explanation.escalationPathway, ...explanation.spaceHazards]) {
+      ...explanation.recommendedVerification, explanation.escalationPathway]) {
       expect(html).toContain(escaped(item.text));
-      // Test each statement independently to verify every ref stays associated with its own text.
+      // Statements are shown without a Sources disclosure or raw ref codes.
       const statement = renderToStaticMarkup(<ExplanationSection title="Evidence" icon="target" items={[item]} />);
-      const source = detailsIn(statement)[0];
-      expect(source.summary).toContain("Sources");
-      expect(source.summary).toContain("Evidence, statement 1");
-      expect(source.attrs).not.toMatch(/\bopen\b/);
-      for (const ref of item.refs) {
-        expect(source.body).toContain(`(${escaped(ref)})`);
-        expect(html).toContain(`(${escaped(ref)})`);
-      }
+      expect(detailsIn(statement)).toHaveLength(0);
+      for (const ref of item.refs) expect(statement).not.toContain(`(${escaped(ref)})`);
     }
+  });
+});
+
+describe("Assessment summary groups", () => {
+  it("splits the summary into vital signs, sleep and mood, and labs, and keeps every measure", () => {
+    const ctx = context("normal");
+    const html = renderToStaticMarkup(<AssessmentScreen ctx={ctx} />);
+    const vitals = html.indexOf("Vital signs"), sleep = html.indexOf("Sleep and mood"), labs = html.indexOf("Blood labs (SpaceLab)");
+    expect(vitals).toBeGreaterThan(-1);
+    expect(sleep).toBeGreaterThan(vitals);
+    expect(labs).toBeGreaterThan(sleep);
+    expect(html).not.toContain("Other measures");
+    for (const d of ctx.assessment!.deltas) expect(html).toContain(escaped(d.label));
+  });
+});
+
+describe("Assessment Review history", () => {
+  it("lists previous assessments newest first and shows the latest saved one after a reload", () => {
+    const older = context("normal"), newer = context("breathing");
+    const ctx = context("normal");
+    ctx.assessment = null; ctx.assessedSnapshot = null; // as after a page reload
+    ctx.history = [
+      { id: "as-1", assessment: { ...older.assessment!, createdAt: "2026-11-13T09:00:00Z" }, snapshot: older.assessedSnapshot! },
+      { id: "as-2", assessment: { ...newer.assessment!, createdAt: "2026-11-14T09:00:00Z" }, snapshot: newer.assessedSnapshot! },
+    ];
+    const html = renderToStaticMarkup(<AssessmentScreen ctx={ctx} />);
+    expect(html).toContain("Previous assessments");
+    expect(html).not.toContain("No assessment yet");
+    const list = html.slice(html.indexOf('id="hist-h"'));
+    expect(list.indexOf("2026-11-14T09:00:00Z")).toBeLessThan(list.indexOf("2026-11-13T09:00:00Z"));
+    expect(list).toContain("Viewing");
+    for (const l of newer.assessment!.limitations) expect(html).toContain(escaped(l));
   });
 });

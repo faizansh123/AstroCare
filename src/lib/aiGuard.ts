@@ -33,7 +33,8 @@ export const GUIDANCE_IDS = guidance.articles.map((a) => a.id);
 
 export function items(ai: AiExplanation): AiItem[] {
   return [...ai.observedEvidence, ...ai.baselineComparison, ...ai.contextualFactors, ...ai.missingOrUncertain,
-    ...ai.recommendedVerification, ...ai.spaceHazards, ai.escalationPathway];
+    ...ai.recommendedVerification, ...ai.spaceHazards, ai.escalationPathway,
+    ...(ai.guidance ? [...ai.guidance.forYouNow, ...ai.guidance.prevention, ...ai.guidance.measurement] : [])];
 }
 
 export function allowedRefs(a: Assessment): Set<string> {
@@ -88,6 +89,16 @@ export function guardAiReply(raw: unknown, a: Assessment, s: Snapshot): GuardRes
     return { ok: false, reason: "Reply stated a different status from the rules" };
   }
   if (!/procedure|protocol/i.test(ai.escalationPathway.text)) return { ok: false, reason: "Escalation pathway missing approved-procedure wording" };
+  // D28: AI guidance must lead with the protocol on RED. It never replaces the fixed escalation reminder in the UI.
+  if (a.status === "RED" && ai.guidance && !/procedure|protocol/i.test(ai.guidance.forYouNow[0].text)) {
+    return { ok: false, reason: "RED guidance did not lead with the approved protocol" };
+  }
+  // AI guidance must not claim outside sources (prompt rule 15): it is unreviewed model text.
+  if (ai.guidance) {
+    const g = [...ai.guidance.forYouNow, ...ai.guidance.prevention, ...ai.guidance.measurement];
+    const cite = g.find((x) => /https?:|www\.|\bet al\b|\bstud(?:y|ies) (?:show|found|prove)|\bresearch (?:shows|proves)|\bproven\b/i.test(x.text));
+    if (cite) return { ok: false, reason: "AI guidance claimed an outside source or proof" };
+  }
 
   const refs = allowedRefs(a);
   const nums = allowedNumbers(a, s);

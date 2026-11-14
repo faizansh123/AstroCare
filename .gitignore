@@ -5,3 +5,6 @@ dist
 !.env.example
 .vercel
 *.tsbuildinfo
+
+# Local Claude skills (not part of the app)
+.taste-skill/

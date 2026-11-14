@@ -1,7 +1,7 @@
 {
   "source": "simulated",
-  "period": "Preflight average (fictional)",
+  "period": "Preflight average",
   "recordedAt": "2026-05-10T08:00:00.000Z",
-  "vitals": { "hr": 72, "sbp": 120, "dbp": 80, "temp": 36.7, "sleep": 8, "mood": 8 },
+  "vitals": { "hr": 72, "sbp": 120, "dbp": 80, "temp": 36.7, "rr": 14, "spo2": 98, "sleep": 8, "mood": 8 },
   "labs": { "hemoglobin": 145, "wbc": 6.2, "glucose": 4.8, "calcium": 2.35 }
 }

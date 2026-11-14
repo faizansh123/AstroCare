@@ -1,6 +1,6 @@
 {
   "version": "guidance-0.2",
-  "reviewStatus": "Draft. Pending clinical review (Nabeeha, file 07 §13).",
+  "reviewStatus": "Draft. Pending clinical review.",
   "label": "Research-informed educational topics, not personalised treatment instructions. Crew-specific medical procedures and flight rules take precedence.",
   "articles": [
     {
@@ -43,14 +43,14 @@
       "section": "measurement-guide",
       "title": "Taking comparable readings",
       "summary": "Repeat a reading at the same time of day, in the same posture, with the same device. Use the same temperature site as the baseline. Compare blood pressure components separately and never compare lab values in different units.",
-      "source": { "label": "AstroCare data dictionary (file 15 §3)", "url": "" }
+      "source": { "label": "AstroCare data dictionary", "url": "" }
     },
     {
       "id": "escalation",
       "section": "measurement-guide",
       "title": "When to escalate",
       "summary": "If you feel unwell, a symptom is new or getting worse, or you are concerned, follow approved crew medical procedures and contact the crew medical officer, whatever colour AstroCare shows.",
-      "source": { "label": "AstroCare safety rules (file 07 §7)", "url": "" }
+      "source": { "label": "AstroCare safety rules", "url": "" }
     }
   ]
 }

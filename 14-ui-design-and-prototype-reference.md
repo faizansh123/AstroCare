@@ -10,7 +10,7 @@ Two visual references exist. They are **the look and the behavior the React buil
 
 | Screen | What it does |
 |---|---|
-| Mission Overview | 4 KPI cards (HR, BP, body temp, sleep and mood), integrated status badge, Earth baseline comparison summary, SpaceLab snapshot, mission environment snapshot, latest mission log entry |
+| Mission Overview | 4 KPI cards (HR, BP, body temp, sleep and mood), integrated status badge, Earth baseline comparison summary, SpaceLab snapshot, mission environment snapshot |
 | Vital Signs and Earth Baseline | Earth vs in-flight bars for HR, SBP, DBP, temperature, sleep, mood with % change. Sliders edit in-flight values. Separate panel of published research (Norsk 2015, n=8) |
 | SpaceLab Biomarkers | Select hemoglobin, WBC, glucose, or calcium. Earth baseline vs in-flight sample, delta and %, slider, context note. Labelled SIMULATED |
 | Daily Self-Assessment | Fatigue 0-10 and mood 1-10 sliders, symptom checkboxes, notes. "Save Check-In and Run Assessment" |
@@ -19,7 +19,6 @@ Two visual references exist. They are **the look and the behavior the React buil
 | Body Map | SVG figure with clickable Brain, Heart, Lungs, Blood, Bones. Each shows related current values and a no-causation note |
 | Trends | 5-point line chart per metric (HR, SBP, temp, sleep, mood), baseline and change summary. Historical points are fictional |
 | Guidance Library | 4 cards (cardiovascular adaptation, spaceflight hazards, sleep and mood, laboratory/immune research) with source links |
-| Mission Log | Chronological entries (self-assessment, assessment, crew note), add note, export JSON |
 
 ## 2. Canonical demo values (from the prototype)
 
@@ -57,7 +56,7 @@ Symptom options in the prototype: Fatigue, Headache, Dizziness, Nausea, Difficul
 | Cabin CO2 0.5 % or higher | Adds a context sentence only, no causation, status unchanged |
 | Otherwise | GREEN, "does not establish medical safety" |
 
-Prototype gaps closed in the React build: INSUFFICIENT DATA state, input validation, data-age and last-sync display, saved trend history, mission log export and import.
+Prototype gaps closed in the React build: INSUFFICIENT DATA state, input validation, data-age and last-sync display, saved trend history. (Mission log removed, D25.)
 
 ## 4. Published research panel (as written in the prototype)
 
@@ -67,7 +66,7 @@ Norsk et al. (2015), 8 astronauts, published group means, not the simulated astr
 
 Dark space theme, glass-like cards, deep navy backgrounds with Earth/Moon/station imagery, teal and blue accents, status colors green / amber / red.
 
-- **Shell:** left sidebar with logo and nav (Dashboard, Self-Assessment, Body Map, Health Trends, Guidance Library, Mission Log). Top bar with mission name, mission day, and "System Online" indicator
+- **Shell:** left sidebar with logo and nav (Dashboard, Self-Assessment, Body Map, Health Trends, Guidance Library; Mission Log removed, D25). Top bar with mission name, mission day, and "System Online" indicator
 - **Dashboard:** crew profile card (name, mission, duration), large "Overall Health Status" card (green "Stable" with check), row of key indicator cards (Heart Rate, Blood Pressure, Body Temp, Sleep, Mood) each with value, baseline, and sparkline
 - **Daily Self-Assessment:** 4-step stepper (Symptoms, Measurements, Lifestyle, Review). Segmented button groups for sleep, fatigue, mood. Symptom checkboxes. "Next: Enter Measurements" button
 - **Results:** large amber "Yellow, Monitor" banner. "Assessment Summary" table (metric, value, delta with arrow). "What Changed?" list. 7-day heart rate trend chart. "Back to Assessment" and "View Guidance" buttons
@@ -75,7 +74,37 @@ Dark space theme, glass-like cards, deep navy backgrounds with Earth/Moon/statio
 
 The mockup numbers (for example HR 96, +24) are illustrative and are **not** canonical. Use the section 2 values and the acceptance tests in file 15.
 
-## 5a. Design tokens taken from the prototype CSS
+## 5a. Design tokens
+
+### Current: v3 visual refresh (macOS-style dark), 14 November 2026
+
+Requested by the project owner on 14 November 2026: the navy prototype palette is replaced by a neutral macOS-style dark appearance to reduce clutter (follows UI-UX-AUDIT main finding and items 02-04, 08, 11-16, 25-27, 32). Layout and behaviour changes are visual only: no feature, rule, threshold or safety wording was removed. The code source of truth is `tailwind.config.js` and `src/index.css`.
+
+| Token | Value |
+|---|---|
+| Page background | #000000 |
+| Sidebar | #161618, translucent with backdrop blur. On desktop it collapses to a 68px icon rail via a toggle button; icons keep a tooltip and a screen-reader label, and the choice is remembered in the browser |
+| Card / inset / raised | #1c1c1e / #2c2c2e / #3a3a3c, hairline border #2a2a2d |
+| Text | #f5f5f7, secondary #d1d1d6, muted #98989f (4.9:1 on #2c2c2e) |
+| Accent (text, icons, links) | #409cff |
+| Primary button | #0071e3, hover #0062c4, white label 4.7:1; pill shape, 44px tall |
+| Selected segment | #636366 with white label |
+| Green status | #30d158 on #132a1b |
+| Yellow status | #ffd60a on #2e2810 |
+| Red status | #ff6961 on #331817 |
+| Insufficient data | #d1d1d6 on #2a2a2e |
+| Earth baseline / in-flight series | #aeaeb2 (dashed on charts) / #409cff; second series (diastolic) #63e6e2 |
+| Font | -apple-system / SF Pro on Apple devices, Inter elsewhere |
+
+Layout decisions in v3: the dashboard leads with status and one next action, then five indicator tiles that switch one large trend chart, then a short "Today" list; demo scenarios sit in a collapsed panel. Card headings carry no icons. Guidance sections use a segmented control. Screens have hash URLs (`#/vitals`) so Back and refresh work. On phones and tablets the navigation is a grouped menu. The in-flight series is no longer lavender (supersedes the space-bar colour below). Not yet done: the mockup's small trend chart on the Results screen (UI-UX-AUDIT #38).
+
+**v3.1 (project owner request, 14 November 2026):** the sidebar no longer lists Vital Signs, SpaceLab, Environment or NASA Research. The screens still exist. SpaceLab and Environment open from the dashboard "Today" list; all four open by URL (`#/vitals`, `#/spacelab`, `#/environment`, `#/research`). The dashboard no longer has the large status banner or the trend chart. It shows the indicator tiles, the body map, and the "Today" list. Overall status (F01) stays visible on every screen as the header status chip. The Self-Assessment Review step no longer shows a status preview; the status appears after saving, on the Assessment screen. **Docs to reconcile:** file 07 §6 still describes 11 sidebar items in 4 groups, and file 07 §4 / F01 describe the status card on the dashboard.
+
+**v3.2 (project owner request, 14 November 2026):** the Assessment screen is renamed **Assessment Review**. Every run is saved (last 50, this browser only, in `astrocare.v2.assessments`) with the inputs it used and the explanation that was shown. A "Previous assessments" list, newest first, lets the user open any earlier result; a banner says when a previous one is shown, with "Back to latest". Past records keep the status the rules gave at the time and are never re-run, so the status cannot change after the fact. After a reload the screen shows the latest saved assessment instead of the empty state. Supports file 15 §10 workflow 2 ("record crew notes and assessment history"). The screen URL stays `#/assessment`. **Docs to reconcile:** file 07 §6 still names the screen "Assessment".
+
+**v3.3 (project owner request, 14 November 2026):** the dashboard indicator tiles are Heart rate, Blood pressure, Body temp, Respiratory rate and SpO₂. Sleep and Mood are no longer tiles but stay in Health Trends, which now has all eight vitals. Respiratory rate and SpO₂ are display only (D26). The sidebar no longer lists Body Map; the body map stays on the dashboard and opens by URL (`#/bodymap`). The symptom "Severe breathing difficulty" is relabelled **"Difficulty breathing / shortness of breath"** and is still the training trigger (RED at any severity, D27). Under the symptom list, a free-text box **"Any other symptoms?"** (optional, 300 characters) is shown on the Review step and with the results (D27).
+
+### Original prototype tokens (history)
 
 | Token | Value |
 |---|---|

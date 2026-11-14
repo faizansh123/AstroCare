@@ -1,6 +1,6 @@
 {
-  "label": "Fictional crew member and fictional mission (D14, file 11). Not a real person or mission.",
+  "label": "Fictional crew member and fictional mission. Not a real person or mission.",
   "astronaut": { "id": "AM-01", "name": "Cdr. Alex Morgan", "role": "Commander" },
   "mission": { "name": "Lunar Orbit mission", "day": 142, "phase": "Lunar orbit", "gravity": "Microgravity" },
-  "environmentReference": { "co2Pct": 0.45, "note": "Demo reference setting, not a limit (file 07 §5)." }
+  "environmentReference": { "co2Pct": 0.45, "note": "Demo reference setting, not a limit." }
 }

@@ -5,7 +5,7 @@ export type IconName =
   | "grid" | "heart" | "flask" | "orbit" | "clipboard" | "shield" | "body" | "chart" | "book" | "library" | "list"
   | "check" | "alert" | "octagon" | "help" | "arrow-right" | "arrow-left" | "info" | "x" | "plus" | "download" | "upload"
   | "wifi" | "wifi-off" | "clock" | "moon" | "thermo" | "gauge" | "battery" | "smile" | "wind" | "droplet" | "sun"
-  | "sparkles" | "external" | "target" | "rocket" | "user" | "refresh";
+  | "sparkles" | "external" | "target" | "rocket" | "user" | "refresh" | "chevron-right" | "menu" | "sidebar";
 
 const PATHS: Record<IconName, ReactNode> = {
   grid: <><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>,
@@ -46,6 +46,9 @@ const PATHS: Record<IconName, ReactNode> = {
   target: <><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></>,
   rocket: <><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1Z" /><path d="m12 15-3-3a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2Z" /></>,
   user: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
+  "chevron-right": <path d="m9 18 6-6-6-6" />,
+  menu: <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>,
+  sidebar: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></>,
   refresh: <><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" /></>,
 };
 
@@ -58,18 +61,15 @@ export function Icon({ name, className = "h-4 w-4", ...rest }: { name: IconName 
   );
 }
 
-export function Card({ title, icon, aside, children, className = "" }: {
-  title?: ReactNode; icon?: IconName; aside?: ReactNode; children: ReactNode; className?: string;
+/** One surface style for the whole app. Headings are plain text (no icon) to keep screens calm. */
+export function Card({ title, aside, children, className = "" }: {
+  title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string;
 }) {
   return (
     <section className={`card ${className}`}>
       {(title || aside) && (
         <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          {title && (
-            <h2 className="flex items-center gap-2 text-base font-semibold text-fg">
-              {icon && <Icon name={icon} className="h-[18px] w-[18px] text-accent-2" />}{title}
-            </h2>
-          )}
+          {title && <h2 className="text-[17px] font-semibold text-fg">{title}</h2>}
           {aside}
         </header>
       )}
@@ -78,12 +78,8 @@ export function Card({ title, icon, aside, children, className = "" }: {
   );
 }
 
-export function SimTag({ children = "Simulated" }: { children?: ReactNode }) {
-  return <span className="chip bg-card-3 text-[11px] uppercase tracking-wider text-accent-2">{children}</span>;
-}
-
 export function Unverified() {
-  return <span className="chip bg-warn-bg/70 text-[11px] uppercase tracking-wider text-warn-fg"><Icon name="alert" className="h-3 w-3" />Unverified</span>;
+  return <span className="chip bg-warn-bg text-warn-fg"><Icon name="alert" className="h-3 w-3" />Unverified</span>;
 }
 
 /** Slider + number box for one value. Empty number box = not measured (undefined). */
@@ -91,28 +87,29 @@ export function MeasureField({ id, label, unit, value, min, max, step, onChange,
   id: string; label: string; unit: string; value: number | undefined; min: number; max: number; step: number;
   onChange: (v: number | undefined) => void; error?: string; hint?: ReactNode; allowEmpty?: boolean;
 }) {
-  const errId = `${id}-err`;
+  const errId = `${id}-err`, hintId = `${id}-hint`;
+  const described = [hint ? hintId : "", error ? errId : ""].filter(Boolean).join(" ") || undefined;
   return (
-    <div className="well">
+    <div className="rounded-xl bg-card-2/70 px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <label htmlFor={id} className="text-sm font-semibold text-fg">{label}</label>
         <div className="flex items-center gap-2">
           <input id={id} type="number" inputMode="decimal" step={step} value={value ?? ""} aria-invalid={!!error}
-            aria-describedby={error ? errId : undefined}
+            aria-describedby={described}
             onChange={(e) => {
               const raw = e.target.value;
               if (raw === "") { if (allowEmpty) onChange(undefined); return; }
               const n = Number(raw);
               onChange(Number.isFinite(n) ? n : undefined);
             }}
-            className="input num w-24 min-h-[36px] py-1 text-right" />
-          <span className="w-12 text-xs text-fg-3">{unit}</span>
+            className="input num min-h-[40px] w-24 bg-card-3/70 py-1 text-right" />
+          <span className="w-12 text-xs text-fg-3">{value === undefined ? "not set" : unit}</span>
         </div>
       </div>
-      <input type="range" aria-label={`${label} slider`} min={min} max={max} step={step}
+      <input type="range" aria-label={`${label} slider`} aria-describedby={described} min={min} max={max} step={step}
         value={value ?? min} onChange={(e) => onChange(Number(e.target.value))}
         className={`mt-2 w-full ${value === undefined ? "opacity-40" : ""}`} />
-      {hint && <div className="mini mt-1">{hint}</div>}
+      {hint && <div id={hintId} className="mini mt-1">{hint}</div>}
       {error && <p id={errId} className="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-bad-fg"><Icon name="alert" className="h-3.5 w-3.5" />{error}</p>}
     </div>
   );

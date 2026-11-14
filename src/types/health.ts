@@ -21,6 +21,8 @@ export const VitalsSchema = z.object({
   sbp: num.optional(), // mmHg
   dbp: num.optional(), // mmHg
   temp: num.optional(), // °C
+  rr: num.optional(), // breaths/min, display only (D26)
+  spo2: num.optional(), // %, display only (D26)
   sleep: num.optional(), // hours, preceding night (D11)
   mood: num.optional(), // 1-10, 10 best (D9)
   posture: z.enum(["seated", "supine", "standing", "unknown"]).default("seated"),
@@ -34,6 +36,8 @@ export const SurveySchema = z.object({
   symptomsAnswer: z.enum(["none", "reported", "unanswered"]),
   symptoms: z.array(z.object({ id: SymptomIdSchema, severity: SeveritySchema.optional() })).max(10),
   notes: z.string().max(500),
+  // Free text. Always shown with the results; the rules engine does not read it (cannot interpret free text).
+  otherSymptoms: z.string().max(300).optional(),
   submittedAt: z.string().optional(),
 });
 export type Survey = z.infer<typeof SurveySchema>;
@@ -44,7 +48,7 @@ export const LabsSchema = z.object({
   glucose: num.optional(), // in glucoseUnit
   glucoseUnit: z.enum(["mmol/L", "mg/dL"]).default("mmol/L"), // D23: mmol/L canonical, mg/dL converts at /18
   calcium: num.optional(), // mmol/L
-  specimen: z.string().max(60).default("Blood (simulated)"),
+  specimen: z.string().max(60).default("Blood"),
   collectedAt: z.string().optional(),
 });
 export type Labs = z.infer<typeof LabsSchema>;
@@ -75,7 +79,7 @@ export interface Baseline {
   source: "simulated";
   period: string;
   recordedAt: string;
-  vitals: { hr: number; sbp: number; dbp: number; temp: number; sleep: number; mood: number };
+  vitals: { hr: number; sbp: number; dbp: number; temp: number; rr: number; spo2: number; sleep: number; mood: number };
   labs: { hemoglobin: number; wbc: number; glucose: number; calcium: number };
 }
 
@@ -152,24 +156,16 @@ export const AiExplanationSchema = z.object({
   // changes the status.
   spaceHazards: z.array(AiItemSchema).max(5),
   escalationPathway: AiItemSchema,
+  // D28: AI-written Guidance page. Optional so saved history from before explain.v5 still loads; the prompt and
+  // Gemini response schema always ask for it. Checked by the same response check as every other item.
+  guidance: z.object({
+    forYouNow: z.array(AiItemSchema).min(1).max(5),
+    prevention: z.array(AiItemSchema).max(4),
+    measurement: z.array(AiItemSchema).max(3),
+  }).optional(),
 });
 export type AiExplanation = z.infer<typeof AiExplanationSchema>;
 
 /** Body of POST /api/explain. Free text is length-capped by the schemas above. */
 export const ExplainRequestSchema = z.object({ snapshot: SnapshotSchema, assessment: AssessmentSchema });
 export type ExplainRequest = z.infer<typeof ExplainRequestSchema>;
-
-// ---- Mission log (F11) ----
-
-export const LogEventSchema = z.object({
-  id: z.string(),
-  type: z.enum(["self-assessment", "assessment", "measurement", "environment", "lab", "crew-note", "ai-check", "import"]),
-  text: z.string().max(2000),
-  author: z.string().max(80), // who or what produced the entry (audit event, file 15 appendix note)
-  source: z.enum(["simulated", "crew-entry", "system"]),
-  missionDay: z.number().int().nonnegative(),
-  createdAt: z.string(),
-  status: StatusSchema.optional(),
-  reasonCodes: z.array(z.string()).optional(),
-});
-export type LogEvent = z.infer<typeof LogEventSchema>;

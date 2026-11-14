@@ -18,7 +18,7 @@ Fictional crew member (suggested): Cdr. Alex Morgan, Lunar Orbit mission (fictio
 1. **Problem (15s):** Ground help is delayed on long missions. Astronauts need to see small changes against their own Earth baseline.
 2. **Flow A, dashboard (15s):** Baseline vs in-flight, trends, SpaceLab biomarkers, environment as context only.
 3. **Flow B, self-assessment (30s):** Four steps (symptoms and feelings, measurements, lifestyle and environment, review). Submit. Rules produce the status and reason codes. Gemini explains it in plain language with cited evidence. Show scenario 2 then 3, then 4 briefly.
-4. **Flow C, log and research (15s):** Mission log entry saved, export JSON, NASA research panel with citations and simulated/published labels.
+4. **Flow C, history and research (15s):** Open a previous assessment from the history, then the NASA research panel with citations and simulated/published labels.
 5. **Close (15s):** Rules decide, AI explains, never diagnoses. Missing data is shown, not hidden. Offline fallback works.
 
 ## Pre-demo checklist
@@ -41,7 +41,6 @@ Fictional crew member (suggested): Cdr. Alex Morgan, Lunar Orbit mission (fictio
 - [ ] Four statuses and reason codes shown
 - [ ] Earth baseline comparison (absolute and % change)
 - [ ] Gemini explanation with evidence refs and fallback
-- [ ] Mission log with export
 - [ ] Context-only environment, no causal claims
 - [ ] No claim of clinical validation or flight readiness
 
