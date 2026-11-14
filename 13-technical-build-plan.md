@@ -1,210 +1,66 @@
-# AstroCare Technical Build Plan
+# AstroCare Technical Build Reference
 
-> **v2 note (14 Nov 2026):** this plan was written before the v2 docs. The features doc (`15`), prototype and mockups (`14`), master spec (`07`) and decisions (`11`) now define scope: Earth baseline with absolute and % deltas, four-step form, SpaceLab, environment context, NASA research panel, mission log, RED as training trigger only. The code has been rebuilt to the v2 plan (see `07`); where this file's structure, types or rules differ, `07` and the code win. Safety rules in file 10 still apply.
+Status (14 November 2026): **built** on branch `v2-rebuild`. This file describes the code as it is. Scope comes from the master spec (`07`), decisions (`11`, D1 to D24) and the architecture (`12`). Safety rules from file 10 and `CLAUDE.md` apply throughout. The earlier v1 build plan (z-score baselines, `evaluate.ts`, 4 screens, Day 1 / Day 2 schedule) is retired and was removed from this file.
 
-Status: plan, no code yet. Derived from the SRS (file 10), the architecture plan (file 12) and the reconciliation (file 11). Each section names the doc it comes from. Where a team decision was still open, this plan takes the option the docs recommend and marks it **[Default, confirm]**.
+## 1. Run it
 
-## 1. What we are building
-
-A browser app where an astronaut does a daily check: profile, then measurements, then symptoms, then context, then review. A **local deterministic rules engine** turns the check into GREEN / YELLOW / RED / INSUFFICIENT_DATA, with baseline deltas and the rules that fired. **Gemini**, called through a server proxy, adds a plain-language explanation, next steps and a draft report around that result. The app works rules-only when there's no network. (file 10 Exec decision, file 12 §1, §4)
-
-```
-Form (React+TS)
-  -> validate + normalize units          src/lib/validate.ts, normalize.ts
-  -> rules engine (local, pure)          src/lib/evaluate.ts   => AssessmentResult (status is final)
-  -> render result immediately
-  -> POST /api/explain (proxy)           api/explain.ts        => Gemini, structured JSON
-  -> validate AI reply (zod + safety)    src/lib/aiGuard.ts
-  -> show in "AI-generated explanation" panel, or fallback guidance (guidance.json)
-  -> persist locally + export report     src/lib/storage.ts, report.ts
-```
-
-## 2. Decisions taken by this plan
-
-| # | Decision | Choice | Source |
-|---|---|---|---|
-| D1 | Who decides status | Local rules. Gemini explains only | file 12 §4, §8.1 |
-| D2 | Proxy host | Vercel serverless function `api/explain.ts` | file 12 §8.2, file 10 §10 |
-| D3 | Offline | Rules-only flow must work offline. The AI is optional. PWA caching is P1 | file 12 §8.3, file 11 §1.7 **[Default, confirm]** |
-| D4 | Gemini model | A fast Flash-tier model, read from `GEMINI_MODEL`. Code default `gemini-3.5-flash-lite` (14 Nov 2026: `gemini-2.5-flash` is retired for new keys; `gemini-3.8-flash` and `gemini-3.7-flash` returned 503 high demand; 3.5-flash-lite answered in about 1.7 s and passed the guard on all three scenarios). Check the exact name and limits in the Google docs at build time | file 12 §5 **[Default, confirm]** |
-| D5 | Gemini output | Explanation, contributing factors, next steps, measurement tips, draft report summary | file 12 §4 **[Default, confirm]** |
-| D6 | Indicators (MVP) | HR, systolic and diastolic BP, temperature, sleep, fatigue, mood, symptoms, optional glucose. SpO2 and HRV are optional simulated fields (P1) | file 11 §1.3 **[Default, confirm]** |
-| D7 | Guaranteed innovation pillar | Delay-aware escalation and handoff | file 11 §3, §6.3 |
-
-## 3. Stack
-
-React 18 + Vite + TypeScript (strict), Tailwind CSS, Recharts (trends), Zod (runtime schemas shared by client and proxy), Vitest + React Testing Library (tests), `@google/genai` in the proxy only, `vite-plugin-pwa` (P1), localStorage (history and Mission Log). Deployed on Vercel, with a local `vite build && vite preview` as the offline demo build. (file 10 §10, file 12 §2)
-
-## 4. Repository layout
-
-```
-api/
-  explain.ts              Vercel function entry: thin wrapper around server/explain.ts
-server/
-  explain.ts              Proxy core shared by Vercel and the Vite dev middleware: holds GEMINI_API_KEY, rate limit, timeout + 1 retry, schema check + aiGuard
-src/
-  types/                  health.ts, assessment.ts, ai.ts, guidance.ts (zod schemas + inferred TS types)
-  data/
-    baselines.json        per-astronaut simulated baseline
-    scenarios.json        normal / concerning / high-risk fixtures (FR-08)
-    rules.json            illustrative demo thresholds, versioned (engineVersion)
-    guidance.json         GuidanceEntry[] with sourceUrl + reviewStatus (FR-06)
-    sources.json          FR-14 evidence register
-    ai-cache/             cached Gemini replies for the 3 scenarios (demo-day fallback)
-  lib/
-    validate.ts normalize.ts evaluate.ts report.ts storage.ts apiClient.ts aiGuard.ts commDelay.ts
-  components/
-    Dashboard/ AssessmentForm/ Results/ Guidance/ TrendChart/ MissionLog/ About/ shared/StatusBadge
-  prompts/
-    explain.v1.ts         fixed, versioned system prompt
-  tests/                  T01-T10 + unit tests
-```
-
-## 5. Data contracts (freeze first; file 10 §11, file 12 §10.1)
-
-```ts
-type Source = "simulated" | "manual";
-type Status = "GREEN" | "YELLOW" | "RED" | "INSUFFICIENT_DATA";
-
-interface HealthRecord {
-  recordId: string; astronautId: string; missionDay: number; recordedAt: string; // ISO
-  source: Source;
-  environment: "spacecraft" | "station" | "rover" | "lunar_base" | "mars_base";
-  measurements: {
-    heartRateBpm?: number; systolicMmHg?: number; diastolicMmHg?: number;
-    temperatureC?: number; sleepHours?: number; fatigueScore?: number;   // 0-10
-    mood?: "good" | "ok" | "low" | "prefer_not_to_say";
-    glucose?: { value: number; unit: "mg/dL" | "mmol/L" };
-    spo2Pct?: number; hrvMs?: number;                                     // optional P1
-  };
-  symptoms: { type: SymptomType; severity: "mild" | "moderate" | "severe"; onset: string; note?: string }[];
-  symptomsAnswer: "reported" | "none" | "unknown";
-  context: { activity?: string; posture?: string; notes?: string };
-}
-
-interface AssessmentResult {
-  recordId: string; status: Status;
-  deviations: { field: string; baseline: number; current: number; delta: number; unit: string; flagged: boolean }[];
-  triggeredRules: { ruleId: string; level: "YELLOW" | "RED"; explanation: string }[];
-  guidanceIds: string[]; missingFields: string[]; evaluatedAt: string;
-  engineVersion: string; disclaimer: string;
-}
-
-interface AiExplanation {            // what Gemini must return (response schema)
-  explanation: string; contributingFactors: string[]; nextSteps: string[];
-  measurementTips: string[]; reportSummary: string; statusEcho: Status;
-}
-
-interface GuidanceEntry { id; topic; hazard; bodyText; actions: string[]; escalationText; sourceUrl; reviewStatus: "draft" | "reviewed" | "illustrative" }
-interface MissionEvent { id; missionDay; type: "radiation_shelter" | "co2_alert" | "eva" | "missed_exercise" | "other"; note? } // P1, annotate only
-```
-
-The Zod schemas in `src/types` are the single source of truth. The proxy imports the same schemas.
-
-## 6. Rules engine (`evaluate.ts`), a pure function `(record, baseline, rules) => AssessmentResult`
-
-Evaluation order, which is safety-critical (file 10 §7, file 11 §1):
-
-1. **Validate** (FR-02, T06). Reject implausible values such as negative sleep, sleep over 24, fatigue outside 0-10, systolic not above diastolic, or values outside physiologic plausibility ranges in `rules.json`. Invalid input returns field errors and **no calculation**.
-2. **Normalize** (T05). Convert glucose mmol/L to mg/dL (×18.016) and display both values.
-3. **Red-flag symptoms** (T07). Configured red-flag symptoms, or any `severe` symptom, give **RED**, even when vitals are normal or fields are missing. Missing fields are still listed.
-4. **Insufficient data** (T04). Required fields missing (HR, BP, temperature, sleep, fatigue), no baseline, a record older than the staleness limit, or `symptomsAnswer` not given all give **INSUFFICIENT_DATA**, with `missingFields`. Never Green.
-5. **Deviation rules**. Compute `delta = current - baseline` for each field and apply the illustrative thresholds from `rules.json`. Example starting values for Nabeeha to review: HR +15 bpm, systolic ±20 mmHg, temperature +1.0 °C, sleep −1.5 h, fatigue +3, mood "low", any moderate symptom. One or more hits give **YELLOW**. Configured critical thresholds, or N or more concurrent deviations, give **RED** (an illustrative protocol trigger).
-6. **Otherwise GREEN**, labelled "No flags under demo rules".
-7. Attach `guidanceIds` by rule, the `engineVersion` and the disclaimer.
-
-Constraints: no reference to environment or Mission Log inside the status logic (FR-01, file 11 §2). Scenarios contain only input data, never a status label (FR-08). The function is deterministic and never throws on blank input (NFR-03).
-
-P1 dual comparison (file 11 §3): add an "illustrative adaptation range for mission day N" column. The status follows the more conservative comparison. The adaptation range only changes the wording of the Yellow message.
-
-## 7. Gemini proxy and AI guard (file 12 §3-§6)
-
-**`api/explain.ts`**
-- Accept `{ record (no names), baseline, result }` and validate it with Zod. Reject the request if invalid.
-- Call Gemini with the fixed system prompt `explain.v1`, JSON output constrained by the `AiExplanation` schema, low temperature, a timeout of about 8 s and one retry.
-- Rate limit per IP with a simple in-memory counter (good enough for a demo).
-- Validate the reply with Zod before returning it. On failure, return `{ ai: null, reason }`.
-- `GEMINI_API_KEY` and `GEMINI_MODEL` live in Vercel env vars and a local `.env` that is git-ignored. Nothing is ever prefixed `VITE_`.
-- Local dev: `vite.config.ts` mounts the same `server/explain.ts` at `/api/explain`, so `npm run dev` works without the Vercel CLI.
-- The guard also runs in the proxy, so a blocked reply never leaves the server. Sensitive identifiers (`recordId`, `astronautId`) are stripped before the prompt is built.
-
-**System prompt `explain.v1`** (wording owned by Nabeeha): not a diagnosis. Never name medications or doses. Always include "follow approved mission procedures and contact the designated medical authority". The rules status is final: repeat it in `statusEcho` and never soften it. Say "insufficient data" rather than guess. Use respectful wording about mood. Don't infer radiation, cabin-air or bone-loss problems from vitals.
-
-**`aiGuard.ts`** (client side, a second line of defence)
-- Discard the reply if `statusEcho !== result.status`, and log the mismatch.
-- Discard it if the text matches a banned-pattern list: dose units (`\d+\s?(mg|mcg|ml|units)`), a drug-name list, or phrases such as "you have", "diagnosis is" or "medically cleared".
-- If the reply is discarded, show `guidance.json` fallback text with the banner "AI explanation unavailable".
-
-**Failure matrix**: offline or API error, off-schema reply, contradiction, a slow reply, and demo-day outage are all covered. The rules result renders first and the AI panel loads in when ready. `ai-cache/` serves the three scenario replies when the `?demo=cached` flag is set.
-
-## 8. Screens (file 10 §9, FR-07)
-
-Nav: Dashboard | Self-Assessment | Results | Guidance | Trends | Mission Log | About/Sources. A persistent banner reads "Simulation. Not for clinical use. Rules are illustrative."
-
-- **Dashboard**: fictional profile, mission day, environment, indicator cards with baseline delta, latest status badge (colour, icon and text), "Start Check", and the scenario picker.
-- **Self-Assessment**: four-step stepper (symptoms, measurements, context, review). Every field shows units, a "How to measure" help, and the source tag.
-- **Results**: status, rules that fired, a deviations table, missing fields, the AI explanation panel (labelled), and "View Guidance".
-- **Guidance**: next steps from `guidance.json` with provenance, escalation text and report export. On RED, the **delay-aware escalation** panel appears: enter or select a one-way delay, see "earliest ground reply = 2 × delay", read the onboard steps from approved protocol text, and generate the handoff packet (SBAR-style report).
-- **Trends** (P1): Recharts line per indicator with a shaded baseline band. Gaps are not joined. Data is marked simulated.
-- **Mission Log** (P1): add and list events. They appear next to trends and in the report as "Logged context. Does not lower any flag."
-- **About/Sources** (FR-14): `sources.json`, rules version, which facts are sourced and which are assumptions.
-
-**Built so far (UI pass, 2026-11-14):** Dashboard, Self-Assessment (still one page, stepper later), Results and Trends, plus the **body map** (FR-12) pulled forward from P2 at the team's request. The body map groups the existing inputs and symptom types by area (head, chest, whole body, arms and legs) and is used to pick symptoms on the form. On Dashboard and Results it highlights only regions with rules that already fired in the engine, using a pattern, a marker icon and a text label as well as colour. It never infers or locates anything. The region grouping is a navigation aid and still needs Nabeeha's clinical review. Guidance, Mission Log and About/Sources are not built yet.
-
-Accessibility (NFR-06): native form controls, visible focus rings, `aria-live` on the status, contrast checked, large targets, and no animation in RED.
-
-## 9. Report (FR-10, file 07 §7)
-
-`report.ts` builds the report from the same `AssessmentResult` that is on screen: astronaut, mission day, environment, status and timestamp, deviations, symptoms, rules fired, actions, Mission Log context, comm delay, the AI summary (if any, labelled) and the disclaimer footer. Export as print-to-PDF (a print stylesheet) and as JSON. Free text is escaped when rendered (NFR-09).
-
-## 10. Tests (file 10 §13)
-
-| Test | How |
+| Command | What it does |
 |---|---|
-| T01 Normal → GREEN, T02 Concerning → YELLOW with correct factors, T03 High-risk → RED | Vitest on `evaluate()` using `scenarios.json` |
-| T04 Missing BP / no baseline → INSUFFICIENT_DATA | Vitest |
-| T05 Glucose mmol/L ↔ mg/dL | Vitest on `normalize()` |
-| T06 Negative sleep, systolic below diastolic → validation error, no result | Vitest on `validate()` |
-| T07 Severe symptom with normal vitals → RED, symptom shown | Vitest + RTL |
-| T08 Offline after load | Manual: DevTools offline + PWA build |
-| T09 Report matches results and timestamps | Vitest on `report()` + manual print |
-| T10 Keyboard only | Manual checklist + RTL tab-order test |
-| AI guard | Vitest: mismatched `statusEcho`, dose text, and an off-schema reply are each discarded |
-| Proxy | Vitest with the Gemini client mocked: timeout, retry, invalid reply |
+| `npm run dev` | App on Vite, plus `POST /api/explain` served by the same code Vercel runs (`server/explain.ts`) |
+| `npm test` | Vitest: rules, boundaries, safety, hazard links, mission log export, AI response check, proxy (Gemini mocked) |
+| `npm run build` | Type-check and production build |
 
-Every test runs in CI with `npm test` (a GitHub Action on PRs). No test calls the real Gemini API.
+`GEMINI_API_KEY` (and optional `GEMINI_MODEL`, default `gemini-3.5-flash-lite`) go in `.env`, server side only. Without a key the app shows the offline explanation.
 
-## 11. Schedule and ownership (file 10 §14-§15, file 12 §9-§10)
+## 2. Pipeline (file 12 §1)
 
-**Day 1**
-| Slot | Subomi (data, rules, API) | Bruno (UI) | Nabeeha (clinical, safety) |
-|---|---|---|---|
-| Morning | Scaffold the repo. Freeze Zod types (§5), baselines and scenarios | App shell, nav, banner, StatusBadge | Review the rules.json thresholds and red-flag symptom list. Start guidance.json and sources.json |
-| Afternoon | `validate`, `normalize`, `evaluate` + T01-T07 | Assessment stepper with validation messages | Write the `explain.v1` prompt and the banned-pattern list |
-| Evening | **One scenario end to end, rules only** (team checkpoint) | Results screen | Check results against acceptance criteria |
+Form → validate (`lib/validate.ts`) → rules engine (`lib/rules.ts`) → hazard links (`lib/hazards.ts`) → proxy (`server/explain.ts`) → Gemini → response check (`lib/aiGuard.ts`, runs in the proxy and again in the browser) → display → mission log (`lib/store.ts`).
 
-**Day 2**
-| Slot | Subomi | Bruno | Nabeeha |
-|---|---|---|---|
-| Morning | `api/explain` proxy + aiGuard + cached replies | Guidance screen + AI panel + fallback banner | Review sample Gemini outputs for safety |
-| Midday | Report + delay-aware escalation logic | Escalation panel, report print view, Dashboard polish | Finish guidance wording and provenance |
-| Afternoon (P1 if green) | Trends data, Mission Log, PWA | Trends chart, Mission Log UI | About/Sources, pitch |
-| Final hours | **Feature freeze.** Run T01-T10, run with Wi-Fi off, deploy to Vercel, record the backup demo, rehearse (file 08 checklist) | | |
+The status is final once the rules engine returns it. Nothing after it (hazard links, environment context, Gemini) can change it.
 
-## 12. Priority cut lines (file 11 §5)
+## 3. Repository layout
 
-- **P0 (must ship):** profile, measurements, symptoms, baseline deltas, four-state engine with rules shown, guidance with fallback, three scenarios, About/Sources, disclaimers.
-- **P0.5 (core of the chosen architecture):** Gemini proxy + AI guard + cached replies. If it's broken at the Day 2 midday checkpoint, demo rules-only and present the AI as "in progress".
-- **P1, in this order:** report export and delay-aware escalation, Mission Log, trends, dual baseline column, PWA offline.
-- **P2:** body map, reminders and gamification, CSV import, environment-aware text, SpO2/HRV.
+```
+src/data/       rules.json (all thresholds, rules version), baseline.json, mission.json, scenarios.ts (6 demo
+                scenarios), catalog.ts (field IDs, labels, units), guidance.json, research.json, hazards.json,
+                history.json (fictional trend points)
+src/lib/        validate, deltas, rules, hazards, explainTemplate (offline explanation), aiGuard, apiClient, store
+src/prompts/    explain.v4.ts (fixed system prompt, user prompt builder, Gemini response schema)
+src/components/ one file per screen (07 §6) plus Explanation, HazardCard, StatusBadge, charts, ui
+src/tests/      rules.test.ts, ai.test.ts
+server/         explain.ts (Gemini proxy core: validation, rate limit, timeout + one retry, response check)
+api/            explain.ts (Vercel function wrapper)
+public/         logo-mark.png (cropped from reference/AstroCare_Logo.png)
+```
 
-## 13. Definition of Done (file 04 §3 + file 10 §13)
+## 4. Rules engine (07 §7)
 
-The P0 flow is integrated. T01-T07 and the AI-guard tests pass. Missing data is handled safely. Disclaimers are visible. No API key appears in the client bundle (grep the `dist/`). It runs locally and on Vercel. Another team member has reviewed it. The docs are updated. The demo has been rehearsed with the network off.
+Order: validate → training trigger (RED) → missing, invalid, conflicting or stale required data (INSUFFICIENT DATA) → YELLOW rules → GREEN. Rule IDs (reason codes): `RED-TRAIN-BREATHING`, `YEL-HR`, `YEL-SLEEP`, `YEL-FATIGUE`, `YEL-MOOD`, `YEL-SYMPTOMS`, `YEL-HEMOGLOBIN`, `CTX-CO2`, `DATA-MISSING`, `DATA-INVALID`, `DATA-STALE`. Thresholds live only in `src/data/rules.json` (version `demo-rules-2.0.0`). Plausibility ranges there are typo catchers, not clinical limits.
 
-## 14. Still open (needs the team)
+## 5. Spaceflight hazard links (D24)
 
-1. Confirm D3-D6 above.
-2. Who owns the Gemini key and billing (file 12 §8.4)?
-3. Which NASA HRP sources are cited for each guidance entry (file 10 §18)?
-4. Submission requirements: video length, code link, project page (file 11 §6.5).
+For every assessment, `lib/hazards.ts` lists NASA's five hazards (space radiation, isolation and confinement, distance from Earth, gravity, closed or hostile environment). For each one it shows the reported symptoms that **may be related** to it, why (from `src/data/hazards.json`), and the readings that support the link or are missing. Levels: `none`, `possible`, `possible-with-context` (a supporting environment reading or self-report is present). Vitals alone never create a link. The links never change the status. The symptom-to-hazard table is a **draft pending clinical review**.
+
+## 6. Explanation (07 §8, 12 §5)
+
+Gemini fills the F06 contract plus `spaceHazards` (exactly 5 notes, one per hazard). The response check rejects the reply, and the offline template is shown, if any of these hold:
+
+- the status differs from the rules,
+- an item cites a ref that does not exist (field, fired rule, guidance or hazard ID),
+- a number does not appear in the inputs, deltas or thresholds,
+- the text contains dose, medication, diagnosis, reassurance or causal wording ("caused", "due to", "because of" and similar).
+
+Gemini rejects `maxItems` in the response schema (400, tested 14 Nov 2026), so list limits are enforced by the zod schema instead. Google can return 503 under load; the proxy retries once, then the app falls back.
+
+## 7. Tests (07 §11)
+
+Delta math (HR 72→92 = +20 / +27.8 %, BP components separate, Hb 145→137 = -8 / -5.5 %, zero-baseline guard, glucose mg/dL conversion), the demo scenarios, every boundary in 07 §11, safety tests (symptoms always shown, RED never suppressed, invalid and stale data, unanswered symptoms), hazard links, mission log export/import, and the AI response check (including "the offline template passes its own check in every scenario"). The proxy tests never call the real API.
+
+## 8. Not done or not verified
+
+- Vercel deploy not tested (Node ESM resolution of the JSON and extensionless imports used by `server/`)
+- PWA offline caching not built (D17: stretch)
+- Visual match to the mockup reviewed by eye only
+- Keyboard-only pass and contrast check not formally run
+- Clinical review of rule wording, guidance, hazard links and the Gemini prompt (Nabeeha)
+- Norsk 2015 numbers not verified against the paper (D20)

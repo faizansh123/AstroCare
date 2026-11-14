@@ -1,0 +1,44 @@
+{
+  "version": "hazard-links-0.1",
+  "reviewStatus": "Draft written by the build, pending clinical review (Nabeeha). Not a validated clinical association table.",
+  "label": "Possible spaceflight factors. A symptom MAY be related to these hazards. The app cannot establish the cause of a symptom for one person, and these links never change the status (D24, file 11).",
+  "source": { "label": "NASA Human Research Program: Five Hazards of Human Spaceflight", "url": "https://www.nasa.gov/hrp/hazards/" },
+  "hazards": [
+    { "id": "radiation", "name": "Space radiation",
+      "summary": "Outside Earth's protective magnetic field, crew receive more radiation than on Earth." },
+    { "id": "isolation", "name": "Isolation and confinement",
+      "summary": "Long periods in a small, isolated crew can affect sleep, mood, workload and concentration." },
+    { "id": "distance", "name": "Distance from Earth",
+      "summary": "Help from Earth is far away and communication can be delayed, so the crew must be more self-reliant." },
+    { "id": "gravity", "name": "Gravity (and the lack of it)",
+      "summary": "Altered gravity shifts body fluids toward the head and affects balance, the heart and blood vessels, bones and muscles." },
+    { "id": "environment", "name": "Closed or hostile environment",
+      "summary": "The spacecraft is a closed system: cabin air (including CO₂), temperature, humidity, noise and lighting all shape how crew feel." }
+  ],
+  "symptomLinks": {
+    "fatigue": [
+      { "hazard": "gravity", "why": "Adapting to altered gravity is associated with tiredness in some crew." },
+      { "hazard": "isolation", "why": "Workload, schedule and confinement can affect sleep and energy." },
+      { "hazard": "environment", "why": "Cabin conditions such as CO₂, temperature and lighting can affect alertness." },
+      { "hazard": "radiation", "why": "Radiation exposure is one factor worth reviewing when fatigue persists." }
+    ],
+    "headache": [
+      { "hazard": "gravity", "why": "Fluid shifting toward the head in altered gravity is associated with headache in some crew." },
+      { "hazard": "environment", "why": "Raised cabin CO₂ is associated with headache in research on closed environments." }
+    ],
+    "dizziness": [
+      { "hazard": "gravity", "why": "Altered gravity affects the balance system and blood-pressure control." }
+    ],
+    "nausea": [
+      { "hazard": "gravity", "why": "Space motion sickness, linked to altered gravity, can include nausea." },
+      { "hazard": "radiation", "why": "Radiation exposure is one factor worth reviewing when nausea is unexplained." }
+    ],
+    "difficulty_concentrating": [
+      { "hazard": "isolation", "why": "Confinement, workload and sleep loss can affect concentration." },
+      { "hazard": "environment", "why": "Raised cabin CO₂ is associated with reduced concentration in research on closed environments." }
+    ],
+    "severe_breathing_difficulty": [
+      { "hazard": "environment", "why": "Cabin air is worth checking, but this is a RED training trigger: follow the approved protocol first." }
+    ]
+  }
+}

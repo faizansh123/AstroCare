@@ -12,12 +12,12 @@ Before planning, coding, reviewing, or answering any question about AstroCare:
 
 ## Which doc wins when they conflict
 
-1. `10-requirements-and-technical-design.md`: the SRS. It is the authority for requirements, safety rules, data contracts, and tests.
-2. `12-architecture-plan.md`: the chosen architecture (React + Tailwind + TypeScript, Gemini behind a server proxy). It adds to the SRS and doesn't override its safety rules.
-3. `11-reconciliation.md`: the conflict resolutions and the innovation pillars, made SRS-safe.
-4. `13-technical-build-plan.md`: the build plan. It is derived from 10, 11 and 12 and must stay consistent with them.
-5. `07-prototype-spec.md` and `09-gaps-and-innovation.md`: superseded wherever they conflict with the files above.
-6. `01`-`06` and `08`: the challenge brief, lab docs and demo. Use them for context, the course framing and the pitch.
+1. `15-features-requirements-user-flows.md` and `14-ui-design-and-prototype-reference.md` (clickable prototype and mockups): feature scope and behaviour.
+2. `10-requirements-and-technical-design.md`: the SRS. Engineering, safety and test requirements, wherever it does not contradict source 1.
+3. `12-architecture-plan.md`: the chosen architecture (React + Tailwind + TypeScript, Gemini behind a server proxy).
+4. `11-reconciliation.md`: the decisions (D1 to D24) that settle conflicts between the sources. `07-prototype-spec.md` is the master spec built from them, and is what the code follows.
+5. `13-technical-build-plan.md`: the build reference. It describes the code and must stay consistent with 07, 11 and 12.
+6. `02`-`06`: project history. `09`: stretch ideas. `01` and `08`: challenge brief, demo and pitch.
 
 ## Non-negotiable safety rules (from files 10, 11, 12)
 
@@ -25,7 +25,8 @@ Before planning, coding, reviewing, or answering any question about AstroCare:
 - Status is one of GREEN / YELLOW / RED / INSUFFICIENT_DATA and comes from the **local, deterministic rules engine**. Gemini never sets or lowers the status.
 - Missing, stale, implausible or contradictory data gives INSUFFICIENT_DATA. It never defaults to Green.
 - Symptom override: a concerning symptom is always shown, and escalation is never suppressed because the vitals look normal.
-- Context (environment, Mission Log events) only annotates or raises concern. It never lowers a status and never silently changes thresholds. Hazards are never inferred from vitals.
+- Context (environment, Mission Log events) only annotates or raises concern. It never lowers a status and never silently changes thresholds.
+- Spaceflight hazards (D24): a reported symptom may be shown as possibly related to one of NASA's five hazards. Never say a hazard caused a symptom, never create a hazard link from vitals alone, and hazard links never change the status.
 - Green reads "No flags under demo rules", never "medically cleared".
 - Every threshold is labelled experimental or illustrative. The data is labelled simulated. "Not for clinical use" is visible on screen.
 - Use fictional data only. The Gemini API key lives only in the server proxy, never in client code or the repo.

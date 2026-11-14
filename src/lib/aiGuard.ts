@@ -18,7 +18,7 @@ const DIAGNOSIS_OR_REASSURANCE = /\b(?:you have|you've got|you've developed|diag
 // Labs and symptoms must never be turned into a named condition (file 07 §7).
 const CONDITIONS = /\b(?:anemi\w*|anaemi\w*|infection|osteopor\w*|bone loss is|diabet\w*|hypoxi\w*|hypercapni\w*|arrhythmi\w*|hypertensi\w*|hypotensi\w*|depressi\w*|insomnia|concussion|stroke)\b/i;
 // Environment is context only. Never say it caused anything (file 15 §5).
-const CAUSAL = /\b(?:caused|causing|causes|due to|because of|as a result of|led to|leads to|resulting from|responsible for|triggered by)\b/i;
+const CAUSAL = /\b(?:caused|causing|causes|due to|because of|as a result of|led to|leads to|resulting from|responsible for|triggered by|is the cause|the cause of|explains your|explained by)\b/i;
 
 const BANNED: [RegExp, string][] = [
   [DOSE, "dose amount"],
@@ -42,6 +42,7 @@ export function allowedRefs(a: Assessment): Set<string> {
     ...[...a.rulesFired, ...a.context].map((h) => `rules.${h.id}`),
     ...a.dataIssues.map((i) => `rules.${i.id}`),
     ...GUIDANCE_IDS.map((id) => `guide.${id}`),
+    ...(a.hazards ?? []).map((h) => `hazard.${h.id}`),
   ]);
 }
 

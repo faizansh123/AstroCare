@@ -164,3 +164,27 @@ describe("mission log export / import", () => {
     expect("error" in importLogJson("{}", [])).toBe(true);
   });
 });
+
+describe("spaceflight hazard links (D24)", () => {
+  const h = (s: Snapshot, id: string) => run(s).hazards.find((x) => x.id === id)!;
+  it("always lists the five NASA hazards", () =>
+    expect(run(scn("normal")).hazards.map((x) => x.id)).toEqual(["radiation", "isolation", "distance", "gravity", "environment"]));
+  it("no symptoms -> nothing linked", () => expect(run(scn("normal")).hazards.every((x) => x.level === "none")).toBe(true));
+  it("headache + raised CO2 -> closed environment with supporting reading, gravity possible", () => {
+    const s = scn("co2-headache");
+    expect(h(s, "environment")).toMatchObject({ level: "possible-with-context", symptoms: ["Headache"] });
+    expect(h(s, "gravity").level).toBe("possible");
+    expect(h(s, "radiation").level).toBe("none");
+  });
+  it("never uses causal wording", () => {
+    const s = scn("normal"); s.survey.symptomsAnswer = "reported";
+    s.survey.symptoms = ["fatigue", "headache", "dizziness", "nausea", "difficulty_concentrating"].map((id) => ({ id: id as never }));
+    const text = JSON.stringify(run(s).hazards);
+    expect(text).not.toMatch(/caused|due to|because of|triggered by/i);
+  });
+  it("hazard links never change the status", () => {
+    const s = scn("co2-headache"); const before = run(s).status;
+    s.env.radiationMGy = 3;
+    expect(run(s).status).toBe(before);
+  });
+});

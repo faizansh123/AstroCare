@@ -37,16 +37,17 @@ The project now has several sources that partly disagree. This file settles each
 | D21 | My earlier innovation ideas | Adaptation-aware baseline, hazard context, delay-aware escalation | **Adaptation baseline:** dropped as an engine, its job is covered by the Earth-vs-space comparison plus the published reference panel. **Hazard context:** covered by F07 environment plus mission log events, context only. **Delay-aware escalation:** kept only as a P2 stretch (not in the new docs) |
 | D22 | Required fields for a valid assessment | SRS: missing field gives Insufficient Data. Not specified which | **Required:** HR, SBP, DBP, temperature, sleep, mood, fatigue, and a symptom answer (none or listed). **Optional:** labs, environment. Missing or invalid required field gives INSUFFICIENT DATA |
 | D23 | Labs and units | Features doc: do not compare incompatible units | Block or convert with a visible conversion. Glucose in mmol/L is canonical, mg/dL converts at x18 |
-| D24 | Space hazards in the explanation | Not in files 10, 12, 14 or 15. Added in prompt `explain.v3` (14 Nov 2026) | The explanation has a `spaceHazards` section: exactly 3 notes (radiation exposure, cabin air, bone and muscle health). Gemini may use relevant readings, including vitals, symptoms and labs, to say what is "worth checking" or "may suggest", never "you have". Notes never change the status and are not a measured dose or a diagnosis. The offline template only restates entered values. **Conflicts with CLAUDE.md** ("hazards are never inferred from vitals"): team decision to keep it; CLAUDE.md needs updating to match |
+| D24 | Spaceflight hazards and symptoms | Team request (14 Nov 2026): analyse whether a reported symptom could be related to NASA's five hazards. Files 15 §5 and 07 §7 forbid stating a cause | Every assessment lists the five NASA hazards (space radiation, isolation and confinement, distance from Earth, gravity, closed or hostile environment) with the reported symptoms that **may be related** to each, why, and the supporting or missing readings (`src/data/hazards.json`, `src/lib/hazards.ts`). Gemini explains them in `spaceHazards` (5 notes). Wording is "may be related to" only, never "caused by". Vitals alone never create a link. Links never change the status. The symptom-to-hazard table is a draft pending clinical review |
 
 ## Still open (team to decide)
 
 1. **Rules for BP, temperature, glucose, WBC, calcium:** the prototype only displays them as deltas. Add configurable rules, or keep display-only? (Default: display-only.)
-2. **Radiation display:** features doc says "when available". Default: optional field, shown only if entered, labelled as context, not live telemetry.
+2. **Radiation display:** built as an optional manual field, shown only if entered, labelled as context, not live telemetry. Confirm.
 3. **Mission identity** (D14) and final navigation grouping (D12).
 4. **Who verifies the Norsk 2015 numbers** against the original paper (suggest Nabeeha).
-5. **Gemini:** model, key owner, billing. Also whether Gemini gets the guidance snippets (retrieval) or just the inputs.
-6. **Stale-data threshold:** placeholder 24 hours.
+5. **Gemini:** key owner and billing. (Built with `gemini-3.5-flash-lite`; Gemini receives the guidance snippets and hazard links.)
+6. **Stale-data threshold:** built with a 24-hour placeholder in `rules.json`. Confirm.
+8. **Clinical review of the hazard links (D24)** and the Gemini prompt `explain.v4`.
 7. **Submission requirements** (video, code link, project page): not in any source yet.
 
 ## What this changes in earlier files

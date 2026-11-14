@@ -56,22 +56,13 @@ export function templateExplanation(a: Assessment, s: Snapshot): AiExplanation {
     ],
   }[a.status];
 
-  // Space hazards (prompt rule 14): one line each for radiation, cabin air, bone and muscle, from the entered data.
-  const ca = a.deltas.find((d) => d.ref === "labs.calcium");
-  const hazards: AiItem[] = [
-    { text: e.radiationMGy !== undefined
-        ? `Radiation exposure: ${e.radiationMGy} mGy was entered manually. Worth checking against mission exposure records.`
-        : "Radiation exposure: no radiation reading was entered. Worth checking against mission exposure records.",
-      refs: ["env.radiationMGy", "guide.spaceflight-hazards"] },
-    { text: e.co2Pct !== undefined || e.cabinTempC !== undefined || e.humidityPct !== undefined
-        ? `Cabin air: ${[e.co2Pct !== undefined && `CO₂ ${e.co2Pct}%`, e.cabinTempC !== undefined && `${e.cabinTempC} °C`, e.humidityPct !== undefined && `humidity ${e.humidityPct}%`].filter(Boolean).join(", ")}. Worth checking alongside any headache, breathing or fatigue symptoms.`
-        : "Cabin air: no cabin readings were entered.",
-      refs: ["env.co2Pct", "env.cabinTempC", "env.humidityPct"] },
-    { text: ca
-        ? `Bone and muscle health: calcium ${ca.baseline.toFixed(ca.digits)} → ${ca.current.toFixed(ca.digits)} ${ca.unit} (${signedPct(ca.pct)}). Worth tracking with exercise and crew medical review.`
-        : "Bone and muscle health: no calcium value was entered. Worth checking at the next specimen.",
-      refs: ["labs.calcium"] },
-  ];
+  // Spaceflight hazards (D24): one note per NASA hazard, possible factors only, from the local hazard links.
+  const hazards: AiItem[] = a.hazards.map((h) => ({
+    text: h.symptoms.length
+      ? `${h.name}: ${h.symptoms.join(", ").toLowerCase()} may be related to this hazard. ${h.why.map((w) => w.split(": ").slice(1).join(": ")).join(" ")} ${h.supporting.join(" ")} Worth considering, not a proven cause.`
+      : `${h.name}: no reported symptom is linked to this hazard. ${h.supporting.join(" ")}`,
+    refs: [`hazard.${h.id}`, ...h.refs],
+  }));
 
   return {
     statusEcho: a.status,

@@ -4,6 +4,7 @@ import { SCENARIOS } from "../data/scenarios";
 import { signed, signedPct } from "../lib/deltas";
 import type { Ctx } from "../appTypes";
 import { Explanation } from "./Explanation";
+import { HazardCard } from "./HazardCard";
 import { StatusBanner } from "./StatusBadge";
 import { Card, Icon, ago } from "./ui";
 
@@ -104,6 +105,8 @@ export function AssessmentScreen({ ctx }: { ctx: Ctx }) {
           </ul>
         </Card>
       </div>
+
+      <HazardCard ctx={ctx} />
 
       <Explanation assessment={a} snapshot={s} ai={ctx.ai} />
 

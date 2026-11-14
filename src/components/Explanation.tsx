@@ -61,7 +61,7 @@ export function Explanation({ assessment, snapshot, ai }: { assessment: Assessme
         <div className="space-y-5">
           <Section title="Possible contextual factors (not causes)" icon="orbit" items={shown.contextualFactors} />
           <Section title="Missing or uncertain information" icon="help" items={shown.missingOrUncertain} />
-          <Section title="Space hazards (radiation, cabin air, bone and muscle)" icon="orbit" items={shown.spaceHazards} />
+          <Section title="Spaceflight hazards: possible factors (not causes)" icon="orbit" items={shown.spaceHazards} />
           <Section title="Recommended verification" icon="check" items={shown.recommendedVerification} />
           <Section title="Escalation pathway" icon="shield" items={[shown.escalationPathway]} />
         </div>

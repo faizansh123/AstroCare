@@ -108,8 +108,22 @@ export const DeltaSchema = z.object({
 });
 export type Delta = z.infer<typeof DeltaSchema>;
 
+/** Possible spaceflight factor for reported symptoms (D24). Never a cause, never changes the status. */
+export const HazardLinkSchema = z.object({
+  id: z.enum(["radiation", "isolation", "distance", "gravity", "environment"]),
+  name: z.string(),
+  summary: z.string(),
+  symptoms: z.array(z.string()),
+  why: z.array(z.string()),
+  supporting: z.array(z.string()),
+  refs: z.array(z.string()),
+  level: z.enum(["none", "possible", "possible-with-context"]),
+});
+export type HazardLink = z.infer<typeof HazardLinkSchema>;
+
 export const AssessmentSchema = z.object({
   status: StatusSchema,
+  hazards: z.array(HazardLinkSchema).max(5),
   rulesFired: z.array(RuleHitSchema),
   context: z.array(RuleHitSchema),
   dataIssues: z.array(DataIssueSchema),
@@ -134,8 +148,9 @@ export const AiExplanationSchema = z.object({
   contextualFactors: z.array(AiItemSchema).max(6),
   missingOrUncertain: z.array(AiItemSchema).max(8),
   recommendedVerification: z.array(AiItemSchema).min(1).max(6),
-  // Radiation exposure, cabin air, bone and muscle health (prompt rule 14). Annotation only, never changes status.
-  spaceHazards: z.array(AiItemSchema).max(3),
+  // One note per NASA hazard (prompt rule 14, D24): possible factors for reported symptoms. Never a cause, never
+  // changes the status.
+  spaceHazards: z.array(AiItemSchema).max(5),
   escalationPathway: AiItemSchema,
 });
 export type AiExplanation = z.infer<typeof AiExplanationSchema>;
