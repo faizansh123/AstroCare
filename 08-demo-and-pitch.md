@@ -27,7 +27,7 @@ Fictional crew member (suggested): Cdr. Alex Morgan, Lunar Orbit mission (fictio
 - [ ] Gemini failure tested: "Offline explanation" fallback shows
 - [ ] API key only in serverless environment, not in repo or client
 - [ ] Cached or recorded backup for the Gemini step
-- [ ] Every screen shows "Simulation / Not for clinical use"
+- [ ] Thresholds read "illustrative", data reads "simulated" (no disclaimer banner, D30)
 - [ ] Rules labelled illustrative, rules version visible
 - [ ] Fictional mission and crew name on every screen, same values as prototype
 - [ ] Simulated vs published labels visible; Norsk 2015 numbers verified by Nabeeha

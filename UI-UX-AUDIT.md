@@ -178,7 +178,7 @@ The following is a proposed design verification checklist. It does not replace t
 - [ ] Essential content remains readable with enlarged text and at 200% zoom; reduced motion keeps all content visible.
 - [ ] Results preserve all four states, symptoms, escalation reminders, missing-data handling, readings/baselines/deltas, rules, time, and limitations.
 - [ ] All five hazards and sentence-level sources remain inspectable; context never changes status or implies a proven cause.
-- [ ] Simulation and “Not for clinical use” remain visible; GREEN retains “No flags under demo rules”.
+- [ ] Simulation and illustrative labels remain visible; GREEN retains “No flags under demo rules”.
 - [ ] Published research remains visually and semantically separate from fictional personal values, with unverified status intact.
 - [ ] Save/load actions provide clear feedback; import/export and offline fallback still work.
 - [ ] Re-run the existing tests and build, then capture the same screen/size set for before/after comparison.

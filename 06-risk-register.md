@@ -47,7 +47,7 @@ Same scale: Low = 1, Medium = 2, High = 3. Score = Probability x Impact.
 | 11 | **Environment shown as a cause of symptoms** | Medium | High | 6 High | Context-only wording, tests for the CO2 plus headache scenario, no causal claims in prompt or templates | Nabeeha |
 | 12 | **Invented lab values or published numbers presented as real** | Medium | High | 6 High | Everything personal labelled simulated. Published figures only in the research panel and only after checking the original tables | Nabeeha |
 | 13 | **Plan drift:** HTML prototype, mockups, spec, and code disagree | High | Medium | 6 High | One master spec, decisions log (file 11), same demo values and fictional identity everywhere | Subomi |
-| 14 | **Unvalidated thresholds read as medical** | Medium | High | 6 High | Rules in one config file, labelled illustrative, visible rules version, "Simulation / Not for clinical use" on every screen | Nabeeha |
+| 14 | **Unvalidated thresholds read as medical** | Medium | High | 6 High | Rules in one config file, labelled illustrative, visible rules version, illustrative and simulated labels on screen (banner removed, D30) | Nabeeha |
 | 15 | **Real mission name beside invented data** (the mockup uses a real program name) | Medium | Medium | 4 Medium | Use a fictional mission name and crew member on every screen | Bruno |
 | 16 | **Missing submission requirements** (video, code link, page) | Medium | Medium | 4 Medium | Check the event page now and add the items to the sprint plan | Nabeeha |
 

@@ -23,7 +23,7 @@ Astronaut (primary), crew medical officer, ground flight surgeon, research/opera
 - No live ISS, NASA, wearable, dosimeter, or lab feed is claimed
 - No diagnosis, no drug dosing, no emergency treatment, no validated risk score
 - GREEN never says "safe": it says "No flags under demo rules"
-- Visible "Simulation / Not for clinical use" label on every screen
+- No on-screen "Not for clinical use" banner (D30). Demo nature shown through "illustrative/demo" labels on thresholds and simulated-data labels
 
 ## 4. Features
 

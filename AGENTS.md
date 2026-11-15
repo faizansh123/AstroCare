@@ -28,6 +28,6 @@ Before planning, coding, reviewing, or answering any question about AstroCare:
 - Context (environment) only annotates or raises concern. It never lowers a status and never silently changes thresholds.
 - Spaceflight hazards (D24): a reported symptom may be shown as possibly related to one of NASA's five hazards. Never say a hazard caused a symptom, never create a hazard link from vitals alone, and hazard links never change the status.
 - Green reads "No flags under demo rules", never "medically cleared".
-- Every threshold is labelled experimental or illustrative. The data is labelled simulated. "Not for clinical use" is visible on screen.
+- Every threshold is labelled experimental or illustrative. The data is labelled simulated. (The on-screen "Not for clinical use" banner was removed by project owner request, D30 in file 11.)
 - Use fictional data only. The Gemini API key lives only in the server proxy, never in client code or the repo.
 - Never use colour alone for status. Always pair it with a text label or icon.

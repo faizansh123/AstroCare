@@ -227,12 +227,6 @@ export default function App() {
       </div>
 
       <div className="min-w-0">
-        {/* Disclaimer, visible on every screen (file 07 §3) */}
-        <div role="note" className="flex items-center justify-center gap-1.5 bg-warn-bg px-4 py-1.5 text-center text-[12px] font-medium text-warn-fg">
-          <Icon name="alert" className="h-3.5 w-3.5 shrink-0" />
-          Not for clinical use · Illustrative rules
-        </div>
-
         <main id="main" className="mx-auto max-w-[1200px] px-4 pb-10 pt-6 sm:px-8 sm:pt-10">
           <header className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <div className="min-w-0">

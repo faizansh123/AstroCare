@@ -161,7 +161,7 @@ GuidanceEntry { id, topic, hazard, bodyText, actions, escalationText, sourceUrl,
 | NFR-04 Offline | Core function without network after assets cached |
 | NFR-05 Privacy | Fictional profiles; no real patient data; nothing sensitive sent to analytics |
 | NFR-06 Accessibility | Keyboard access, visible focus, text status labels, contrast, descriptive errors |
-| NFR-07 Transparency | Visible "Simulation / Not for clinical use" label; sources and rules version available |
+| NFR-07 Transparency | Sources and rules version available; thresholds labelled illustrative, data labelled simulated. The on-screen "Not for clinical use" banner was removed (D30, file 11) |
 | NFR-08 Maintainability | Separated components, reusable schemas, documented setup and tests |
 | NFR-09 Security | No secrets in frontend; sanitize free-text display; constrain exports |
 | NFR-10 Portability | Current Chrome/Edge, common laptop/tablet widths |
