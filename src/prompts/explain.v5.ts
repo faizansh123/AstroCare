@@ -2,7 +2,7 @@
 // DRAFT wording pending Nabeeha's safety review (file 07 §13). Bump the version whenever the text changes.
 // v5 (D28): the model also writes the Guidance page ("guidance" section). The hand-written guidance library is no
 // longer sent to the model, so it writes its own guidance from the inputs and rules result only.
-import { FIELD_REFS } from "../data/catalog";
+import { FIELD_REFS } from "../data/catalog.js";
 import type { ExplainRequest } from "../types/health";
 
 export const PROMPT_VERSION = "explain.v5";

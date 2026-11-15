@@ -4,10 +4,10 @@
 //  2. statusEcho equals the rules status       5. No dose, medication, diagnosis, reassurance or causal wording
 //  3. Every item cites only known refs
 // The banned-pattern list is a DRAFT pending Nabeeha's safety review (file 07 §13).
-import guidance from "../data/guidance.json";
-import rules from "../data/rules.json";
-import { FIELD_REFS } from "../data/catalog";
-import { AiExplanationSchema, type AiExplanation, type AiItem, type Assessment, type Snapshot } from "../types/health";
+import guidance from "../data/guidance.json" with { type: "json" };
+import rules from "../data/rules.json" with { type: "json" };
+import { FIELD_REFS } from "../data/catalog.js";
+import { AiExplanationSchema, type AiExplanation, type AiItem, type Assessment, type Snapshot } from "../types/health.js";
 
 export type GuardResult = { ok: true; ai: AiExplanation } | { ok: false; reason: string };
 
