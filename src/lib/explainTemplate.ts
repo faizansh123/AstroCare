@@ -42,7 +42,7 @@ export function templateExplanation(a: Assessment, s: Snapshot): AiExplanation {
 
   const verify: AiItem[] = {
     RED: [
-      { text: "Training scenario: follow the approved crew emergency or medical protocol and contact the responsible medical officer now. This is a demo, not an operational alert.", refs: ["rules.RED-TRAIN-BREATHING", "guide.escalation"] },
+      { text: "Follow the approved crew emergency or medical protocol and contact the responsible medical officer now. This is a demo, not an operational alert.", refs: ["rules.RED-TRAIN-BREATHING", "guide.escalation"] },
     ],
     YELLOW: [
       { text: "Repeat the flagged readings under the same conditions: same time of day, posture and device.", refs: ["guide.measurement-guide"] },

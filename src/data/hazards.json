@@ -38,7 +38,7 @@
       { "hazard": "environment", "why": "Raised cabin CO₂ is associated with reduced concentration in research on closed environments." }
     ],
     "severe_breathing_difficulty": [
-      { "hazard": "environment", "why": "Cabin air is worth checking, but this is a RED training trigger: follow the approved protocol first." }
+      { "hazard": "environment", "why": "Cabin air is worth checking, but this symptom always gives RED: follow the approved protocol first." }
     ]
   }
 }

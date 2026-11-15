@@ -160,7 +160,7 @@ Astronaut, Mission, Baseline, Observation, LabResult, SymptomSurvey, Environment
 | Sleep 8 -> 5.5 h | -2.5 h, YELLOW reason |
 | CO2 raised + headache | Context mentioned, no causal claim |
 | Hemoglobin 145 -> 137 g/L | -8 g/L, -5.5%, no flag, "trend not diagnosis" |
-| Severe breathing difficulty | RED training scenario, protocol text |
+| Severe breathing difficulty | RED ("Red: escalate now"), protocol text, no "training" wording (D29) |
 | Required field missing | INSUFFICIENT DATA |
 | Headache with CO₂ 0.6% (D24) | Closed environment and gravity listed as possible factors, no causal wording, status unchanged |
 

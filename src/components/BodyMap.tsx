@@ -37,7 +37,7 @@ const REGIONS: Record<RegionId, {
 const IDS: RegionId[] = ["brain", "sleep", "heart", "lungs", "blood", "bones"];
 
 const LEVEL_TEXT: Record<Level, string> = {
-  RED: "Red training rule", YELLOW: "Review flag", SYMPTOM: "Symptom reported", NONE: "Nothing flagged",
+  RED: "Red rule", YELLOW: "Review flag", SYMPTOM: "Symptom reported", NONE: "Nothing flagged",
 };
 const LEVEL_ICON: Record<Level, IconName> = { RED: "octagon", YELLOW: "alert", SYMPTOM: "info", NONE: "check" };
 const LEVEL_CLASS: Record<Level, string> = { RED: "text-bad-fg", YELLOW: "text-warn-fg", SYMPTOM: "text-accent", NONE: "text-fg-3" };
@@ -273,7 +273,7 @@ export function BodyMapScreen({ ctx }: { ctx: Ctx }) {
           <ul className="mt-2 space-y-1.5 text-sm">{st.hits.map((h) => (
             <li key={h.id} className={`flex gap-2 rounded-xl px-3 py-2 ${h.level === "RED" ? "bg-bad-bg" : "bg-warn-bg"}`}>
               <Icon name={h.level === "RED" ? "octagon" : "alert"} className={`mt-0.5 h-4 w-4 shrink-0 ${h.level === "RED" ? "text-bad-fg" : "text-warn-fg"}`} />
-              <span><span className="sr-only">{h.level === "RED" ? "Red training rule: " : "Review flag: "}</span>{h.text}</span>
+              <span><span className="sr-only">{h.level === "RED" ? "Red rule: " : "Review flag: "}</span>{h.text}</span>
             </li>
           ))}</ul>
         ) : <p className="mini mt-1">None for this region.</p>}

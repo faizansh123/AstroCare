@@ -32,7 +32,7 @@ export function assess(s: Snapshot, b: Baseline, now = Date.now()): Assessment {
   for (const sym of s.survey.symptoms) {
     if (triggers.has(sym.id)) {
       fired.push({ id: "RED-TRAIN-BREATHING", level: "RED", refs: ["survey.symptoms"],
-        text: `${SYMPTOMS[sym.id].label} selected. RED training scenario.` });
+        text: `${SYMPTOMS[sym.id].label} selected. This symptom always gives RED.` });
     }
   }
 

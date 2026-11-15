@@ -46,7 +46,7 @@ Symptom options in the prototype: Fatigue, Headache, Dizziness, Nausea, Difficul
 
 | Rule | Result |
 |---|---|
-| Severe breathing difficulty selected | RED, "training scenario", follow approved crew emergency/medical protocol |
+| Severe breathing difficulty selected | RED, "Red: escalate now", follow approved crew emergency/medical protocol (no "training" wording, D29) |
 | HR is 20 or more bpm above Earth baseline | YELLOW reason |
 | Sleep under 6 hours | YELLOW reason |
 | Fatigue 7/10 or higher | YELLOW reason |

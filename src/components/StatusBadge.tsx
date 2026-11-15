@@ -15,7 +15,7 @@ export const STATUS_STYLE: Record<Status, { icon: IconName; label: string; title
     box: "border-warn-line/60 bg-warn-bg/50", text: "text-warn-fg", solid: "bg-warn-fg text-black",
   },
   RED: {
-    icon: "octagon", label: "RED", title: "Red: training scenario",
+    icon: "octagon", label: "RED", title: "Red: escalate now",
     subtitle: "Follow the approved crew emergency or medical protocol and contact the responsible medical officer.",
     box: "border-bad-line/70 bg-bad-bg/60", text: "text-bad-fg", solid: "bg-bad-fg text-black",
   },

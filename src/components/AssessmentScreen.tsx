@@ -127,7 +127,7 @@ function AssessmentDetail({ ctx, past }: { ctx: Ctx; past: boolean }) {
         <div>
           <h2 className="text-[22px] font-semibold">No assessment yet</h2>
           <p className="mt-2 text-fg-3">Uses your vital signs, Earth baseline differences, SpaceLab values, self-assessment and environmental context.
-            GREEN / YELLOW / RED are illustrative training states, not medical risk scores.</p>
+            GREEN / YELLOW / RED are illustrative demo states, not medical risk scores.</p>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
           <button type="button" className="btn-primary" onClick={() => ctx.go("self-assessment")}>Start the self-assessment<Icon name="arrow-right" /></button>

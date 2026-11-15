@@ -40,7 +40,7 @@ export const SCENARIOS: Scenario[] = [
     },
   },
   {
-    id: "breathing", label: "Breathing difficulty (training)", description: "Normal vitals, training trigger selected",
+    id: "breathing", label: "Breathing difficulty", description: "Normal vitals, breathing difficulty selected",
     build: (now = Date.now()) => {
       const s = SCENARIOS[0].build(now);
       s.survey = { fatigue: 3, symptomsAnswer: "reported", symptoms: [{ id: "severe_breathing_difficulty", severity: "severe" }], notes: "" };

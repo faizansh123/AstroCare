@@ -57,7 +57,7 @@ AstroCare is a research-informed astronaut wellness and health-trend prototype. 
 Demo rules are intentionally illustrative and configurable, not validated flight medicine.
 
 - **Yellow examples:** heart-rate increase of 20 bpm or more from the fictional personal baseline, sleep under 6 hours, severe fatigue, or multiple symptoms
-- **Red:** only for explicitly selected training scenarios (for example reported severe breathing difficulty), with visible "simulation only" messaging
+- **Red:** only for explicitly selected training scenarios (for example reported severe breathing difficulty), with visible "simulation only" messaging. Per D29 (file 11) the UI never calls this a "training" scenario; the RED card reads "Red: escalate now"
 - **Environment:** CO2 and radiation may contribute context but cannot independently establish the cause of a symptom
 - **Labs:** contribute baseline deviations and review notes. They do not diagnose anemia, infection, metabolic disease, or bone loss
 
@@ -133,7 +133,7 @@ Optional future backend: FastAPI or Node API -> PostgreSQL or time-series storag
 | Sleep 8 -> 5.5 h | -2.5 h, contextual sleep review |
 | CO2 increased + headache | Environmental context mentioned, no causal diagnosis |
 | Hemoglobin 145 -> 137 g/L | -8 g/L, -5.5%, trend not diagnosis |
-| Severe breathing difficulty selected | RED training scenario, approved-protocol escalation text |
+| Severe breathing difficulty selected | RED ("Red: escalate now"), approved-protocol escalation text; no "training" wording on screen (D29) |
 | Required field missing | INSUFFICIENT DATA rather than automatic GREEN |
 
 ## 11. Delivery plan
