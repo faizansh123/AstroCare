@@ -2,7 +2,6 @@
 // 3 Lifestyle and environment -> 4 Review (shows missing or invalid fields, then Calculate).
 // Stores sleep in hours (D11), fatigue 0-10 (D10), mood 1-10 (D9). Quick-pick chips only fill the number.
 import { useEffect, useMemo, useRef, useState } from "react";
-import rules from "../data/rules.json";
 import { ENV, FATIGUE, SYMPTOMS, SYMPTOM_IDS, VITALS, fatigueBand, moodBand, type VitalKey } from "../data/catalog";
 import { assess } from "../lib/rules";
 import { issuesByField } from "../lib/validate";
@@ -141,13 +140,11 @@ export function SelfAssessment({ ctx }: { ctx: Ctx }) {
               <ul className="grid gap-2 sm:grid-cols-2">
                 {SYMPTOM_IDS.map((id) => {
                   const cur = d.survey.symptoms.find((y) => y.id === id);
-                  const isTrigger = rules.trainingTriggers.includes(id);
                   return (
                     <li key={id} className={`rounded-xl px-3 py-2 transition-colors ${cur ? "bg-card-3/70 ring-1 ring-accent/50" : "bg-card-2/70"}`}>
                       <label className="flex min-h-[32px] cursor-pointer items-center gap-2 text-sm">
                         <input type="checkbox" className="h-4 w-4 accent-[#0a84ff]" checked={!!cur} onChange={(e) => toggleSymptom(id, e.target.checked)} />
                         {SYMPTOMS[id].label}
-                        {isTrigger && <span className="chip ml-auto bg-bad-bg text-[11px] text-bad-fg">Training trigger</span>}
                       </label>
                       {cur && (
                         <div className="seg-group mt-2" role="group" aria-label={`${SYMPTOMS[id].label} severity`}>
