@@ -25,7 +25,7 @@ src/data/       rules.json (all thresholds, rules version), baseline.json, missi
                 scenarios), catalog.ts (field IDs, labels, units), guidance.json, research.json, hazards.json,
                 history.json (fictional trend points)
 src/lib/        validate, deltas, rules, hazards, explainTemplate (offline explanation), aiGuard, apiClient, store
-src/prompts/    explain.v5.ts (fixed system prompt, version `explain.v6` since D31; user prompt builder, Gemini response schema)
+src/prompts/    explain.v5.ts (fixed system prompt, version `explain.v7` since D31; user prompt builder, Gemini response schema)
 src/components/ one file per screen (07 §6) plus Explanation, HazardCard, StatusBadge, charts, ui
 src/tests/      rules.test.ts, ai.test.ts
 server/         explain.ts (Gemini proxy core: validation, rate limit, timeout + one retry, response check)

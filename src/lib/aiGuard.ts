@@ -82,7 +82,11 @@ export function unknownNumbers(text: string, allowed: number[]): string[] {
 
 export function guardAiReply(raw: unknown, a: Assessment, s: Snapshot): GuardResult {
   const parsed = AiExplanationSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, reason: "Reply did not match the F06 output contract" };
+  if (!parsed.success) {
+    const issues = parsed.error.issues.slice(0, 5).map((i) => `${i.path.join(".")}: ${i.message}`);
+    console.warn(`[aiGuard] schema issue(s): ${issues.join("; ")}`);
+    return { ok: false, reason: "Reply did not match the F06 output contract" };
+  }
   const ai = parsed.data;
   if (ai.statusEcho !== a.status) {
     console.warn(`[aiGuard] status mismatch: rules=${a.status} ai=${ai.statusEcho}`);
