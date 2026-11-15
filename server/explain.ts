@@ -33,7 +33,7 @@ export function geminiGenerate(apiKey: string): GenerateFn {
         responseMimeType: "application/json",
         responseJsonSchema: AI_RESPONSE_JSON_SCHEMA,
         temperature: 0.2, // low for consistency (file 12 §11)
-        maxOutputTokens: 2500,
+        maxOutputTokens: 4000, // v6 asks for more specific (longer) checks
         abortSignal: signal,
       },
     });
